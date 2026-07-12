@@ -1,0 +1,119 @@
+/* Custom styling to override and enhance Streamlit UI elements */
+
+/* Import premium sans-serif font */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* Apply Outfit font universally */
+html, body, [class*="css"], .stMarkdown, .stButton, .stSlider {
+    font-family: 'Outfit', sans-serif !important;
+}
+
+/* Gradient titles */
+.gradient-text {
+    background: linear-gradient(135deg, #00F5D4 0%, #00B4D8 50%, #7209B7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.gradient-subtext {
+    background: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+/* Glassmorphism Cards for Dashboard metrics */
+.glass-card {
+    background: rgba(23, 42, 69, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 180, 216, 0.15);
+    padding: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    margin-bottom: 20px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 180, 216, 0.4);
+    box-shadow: 0 12px 40px 0 rgba(0, 180, 216, 0.2);
+}
+
+/* Custom Alert Card */
+.alert-card {
+    border-left: 4px solid #F72585;
+    background: rgba(247, 37, 133, 0.05);
+}
+
+/* Custom Success Card */
+.success-card {
+    border-left: 4px solid #00F5D4;
+    background: rgba(0, 245, 212, 0.05);
+}
+
+/* Custom Info Card */
+.info-card {
+    border-left: 4px solid #00B4D8;
+    background: rgba(0, 180, 216, 0.05);
+}
+
+/* Custom styling for metrics */
+div[data-testid="stMetricValue"] {
+    font-size: 2.2rem !important;
+    font-weight: 700 !important;
+    color: #00B4D8 !important;
+}
+
+div[data-testid="stMetricLabel"] {
+    font-size: 0.95rem !important;
+    color: #94A3B8 !important;
+    font-weight: 500 !important;
+}
+
+/* Polished Tab headers */
+button[data-baseweb="tab"] {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: #94A3B8 !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 10px 16px !important;
+}
+
+button[data-baseweb="tab"]:hover {
+    color: #00B4D8 !important;
+}
+
+button[aria-selected="true"] {
+    color: #00F5D4 !important;
+    border-bottom-color: #00F5D4 !important;
+}
+
+/* Sub-card titles */
+.card-title {
+    color: #F8FAFC;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Form section headers */
+.form-section-header {
+    color: #00B4D8;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0, 180, 216, 0.2);
+    padding-bottom: 6px;
+    margin-top: 15px;
+    margin-bottom: 12px;
+}
