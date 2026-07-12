@@ -70,66 +70,64 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
     )
 
     with col_g1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("<h5>Immune Health Index (IHI)</h5>", unsafe_allow_html=True)
-        fig_ihi = go.Figure(
-            go.Indicator(
-                mode="gauge+number",
-                value=outputs.IHI,
-                domain={"x": [0, 1], "y": [0, 1]},
-                gauge={
-                    "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#F8FAFC"},
-                    "bar": {"color": "#00F5D4"},
-                    "bgcolor": "rgba(0,0,0,0)",
-                    "borderwidth": 2,
-                    "bordercolor": "#00B4D8",
-                    "steps": [
-                        {"range": [0, 45], "color": "rgba(247, 37, 133, 0.15)"},
-                        {"range": [45, 75], "color": "rgba(255, 190, 11, 0.15)"},
-                        {"range": [75, 100], "color": "rgba(0, 245, 212, 0.15)"},
-                    ],
-                    "threshold": {
-                        "line": {"color": "#F8FAFC", "width": 4},
-                        "thickness": 0.75,
-                        "value": outputs.IHI,
+        with st.container(border=True):
+            st.markdown("<h5>Immune Health Index (IHI)</h5>", unsafe_allow_html=True)
+            fig_ihi = go.Figure(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=outputs.IHI,
+                    domain={"x": [0, 1], "y": [0, 1]},
+                    gauge={
+                        "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#F8FAFC"},
+                        "bar": {"color": "#00F5D4"},
+                        "bgcolor": "rgba(0,0,0,0)",
+                        "borderwidth": 2,
+                        "bordercolor": "#00B4D8",
+                        "steps": [
+                            {"range": [0, 45], "color": "rgba(247, 37, 133, 0.15)"},
+                            {"range": [45, 75], "color": "rgba(255, 190, 11, 0.15)"},
+                            {"range": [75, 100], "color": "rgba(0, 245, 212, 0.15)"},
+                        ],
+                        "threshold": {
+                            "line": {"color": "#F8FAFC", "width": 4},
+                            "thickness": 0.75,
+                            "value": outputs.IHI,
+                        },
                     },
-                },
+                )
             )
-        )
-        fig_ihi.update_layout(**_GAUGE_LAYOUT)
-        st.plotly_chart(fig_ihi, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+            fig_ihi.update_layout(**_GAUGE_LAYOUT)
+            st.plotly_chart(fig_ihi, use_container_width=True)
 
     with col_g2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("<h5>Biobanking Eligibility (BES)</h5>", unsafe_allow_html=True)
-        fig_bes = go.Figure(
-            go.Indicator(
-                mode="gauge+number",
-                value=outputs.BES,
-                domain={"x": [0, 1], "y": [0, 1]},
-                gauge={
-                    "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#F8FAFC"},
-                    "bar": {"color": "#00B4D8"},
-                    "bgcolor": "rgba(0,0,0,0)",
-                    "borderwidth": 2,
-                    "bordercolor": "#00B4D8",
-                    "steps": [
-                        {"range": [0, 50], "color": "rgba(247, 37, 133, 0.15)"},
-                        {"range": [50, 75], "color": "rgba(255, 190, 11, 0.15)"},
-                        {"range": [75, 100], "color": "rgba(0, 180, 216, 0.15)"},
-                    ],
-                    "threshold": {
-                        "line": {"color": "#F8FAFC", "width": 4},
-                        "thickness": 0.75,
-                        "value": outputs.BES,
+        with st.container(border=True):
+            st.markdown("<h5>Biobanking Eligibility (BES)</h5>", unsafe_allow_html=True)
+            fig_bes = go.Figure(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=outputs.BES,
+                    domain={"x": [0, 1], "y": [0, 1]},
+                    gauge={
+                        "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#F8FAFC"},
+                        "bar": {"color": "#00B4D8"},
+                        "bgcolor": "rgba(0,0,0,0)",
+                        "borderwidth": 2,
+                        "bordercolor": "#00B4D8",
+                        "steps": [
+                            {"range": [0, 50], "color": "rgba(247, 37, 133, 0.15)"},
+                            {"range": [50, 75], "color": "rgba(255, 190, 11, 0.15)"},
+                            {"range": [75, 100], "color": "rgba(0, 180, 216, 0.15)"},
+                        ],
+                        "threshold": {
+                            "line": {"color": "#F8FAFC", "width": 4},
+                            "thickness": 0.75,
+                            "value": outputs.BES,
+                        },
                     },
-                },
+                )
             )
-        )
-        fig_bes.update_layout(**_GAUGE_LAYOUT)
-        st.plotly_chart(fig_bes, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+            fig_bes.update_layout(**_GAUGE_LAYOUT)
+            st.plotly_chart(fig_bes, use_container_width=True)
 
     col_c1, col_c2 = st.columns(2)
 
@@ -137,99 +135,97 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
     # 3. Radar Chart — 5 Supporting Dimensions
     # ─────────────────────────────────────────────
     with col_c1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.markdown("<h5>Biomarker &amp; Health Profile Dimensions</h5>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("<h5>Biomarker &amp; Health Profile Dimensions</h5>", unsafe_allow_html=True)
 
-        categories = [
-            "Inflammation (IS)",
-            "Lifestyle (LS)",
-            "Vaccine Resp. (VRS)",
-            "Health Score (HS)",
-            "Age Factor (AF)",
-        ]
-        values = [
-            outputs.InflammationScore,
-            outputs.LifestyleScore,
-            outputs.VaccineResponseScore,
-            outputs.HealthScore,
-            outputs.AgeFactor,
-        ]
-        # Close the radar loop
-        categories.append(categories[0])
-        values.append(values[0])
+            categories = [
+                "Inflammation (IS)",
+                "Lifestyle (LS)",
+                "Vaccine Resp. (VRS)",
+                "Health Score (HS)",
+                "Age Factor (AF)",
+            ]
+            values = [
+                outputs.InflammationScore,
+                outputs.LifestyleScore,
+                outputs.VaccineResponseScore,
+                outputs.HealthScore,
+                outputs.AgeFactor,
+            ]
+            # Close the radar loop
+            categories.append(categories[0])
+            values.append(values[0])
 
-        fig_radar = go.Figure()
-        fig_radar.add_trace(
-            go.Scatterpolar(
-                r=values,
-                theta=categories,
-                fill="toself",
-                fillcolor="rgba(0, 180, 216, 0.25)",
-                line=dict(color="#00B4D8", width=2),
-                marker=dict(color="#00F5D4", size=6),
-                name="Patient Scores",
+            fig_radar = go.Figure()
+            fig_radar.add_trace(
+                go.Scatterpolar(
+                    r=values,
+                    theta=categories,
+                    fill="toself",
+                    fillcolor="rgba(0, 180, 216, 0.25)",
+                    line=dict(color="#00B4D8", width=2),
+                    marker=dict(color="#00F5D4", size=6),
+                    name="Patient Scores",
+                )
             )
-        )
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100],
-                    color="#94A3B8",
-                    gridcolor="rgba(148, 163, 184, 0.2)",
+            fig_radar.update_layout(
+                polar=dict(
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, 100],
+                        color="#94A3B8",
+                        gridcolor="rgba(148, 163, 184, 0.2)",
+                    ),
+                    angularaxis=dict(
+                        color="#F8FAFC",
+                        gridcolor="rgba(148, 163, 184, 0.2)",
+                    ),
+                    bgcolor="rgba(0,0,0,0)",
                 ),
-                angularaxis=dict(
-                    color="#F8FAFC",
-                    gridcolor="rgba(148, 163, 184, 0.2)",
-                ),
-                bgcolor="rgba(0,0,0,0)",
-            ),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#F8FAFC", family="Outfit"),
-            height=300,
-            margin=dict(l=40, r=40, t=30, b=20),
-        )
-        st.plotly_chart(fig_radar, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#F8FAFC", family="Outfit"),
+                height=300,
+                margin=dict(l=40, r=40, t=30, b=20),
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
 
     # ─────────────────────────────────────────────
     # 4. Biological vs Chronological Age Bar Chart
     # ─────────────────────────────────────────────
     with col_c2:
-        st.markdown('<div class="glass-card" style="height: 355px;">', unsafe_allow_html=True)
-        st.markdown("<h5>Biological vs Chronological Age</h5>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("<h5>Biological vs Chronological Age</h5>", unsafe_allow_html=True)
 
-        fig_age = go.Figure()
-        fig_age.add_trace(
-            go.Bar(
-                y=["Chronological Age", "Immune Age (Biological)"],
-                x=[inputs.Age, inputs.ImmuneAge],
-                orientation="h",
-                marker=dict(
-                    color=["rgba(148, 163, 184, 0.6)", "#00F5D4"],
-                    line=dict(color=["#94A3B8", "#00B4D8"], width=1.5),
-                ),
-                width=0.4,
+            fig_age = go.Figure()
+            fig_age.add_trace(
+                go.Bar(
+                    y=["Chronological Age", "Immune Age (Biological)"],
+                    x=[inputs.Age, inputs.ImmuneAge],
+                    orientation="h",
+                    marker=dict(
+                        color=["rgba(148, 163, 184, 0.6)", "#00F5D4"],
+                        line=dict(color=["#94A3B8", "#00B4D8"], width=1.5),
+                    ),
+                    width=0.4,
+                )
             )
-        )
-        fig_age.update_layout(
-            xaxis=dict(
-                title=dict(text="Years", font=dict(color="#F8FAFC")),
-                tickfont=dict(color="#94A3B8"),
-                gridcolor="rgba(148, 163, 184, 0.15)",
-            ),
-            yaxis=dict(
-                tickfont=dict(color="#F8FAFC"),
-            ),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#F8FAFC", family="Outfit"),
-            height=250,
-            margin=dict(l=20, r=20, t=10, b=20),
-        )
-        st.plotly_chart(fig_age, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+            fig_age.update_layout(
+                xaxis=dict(
+                    title=dict(text="Years", font=dict(color="#F8FAFC")),
+                    tickfont=dict(color="#94A3B8"),
+                    gridcolor="rgba(148, 163, 184, 0.15)",
+                ),
+                yaxis=dict(
+                    tickfont=dict(color="#F8FAFC"),
+                ),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#F8FAFC", family="Outfit"),
+                height=250,
+                margin=dict(l=20, r=20, t=10, b=20),
+            )
+            st.plotly_chart(fig_age, use_container_width=True)
 
     # ─────────────────────────────────────────────
     # 5. Complete Metrics Breakdown Cards

@@ -6,8 +6,8 @@ def render_header():
     """Renders the dashboard header with only the title top bar."""
     st.markdown(
         """
-        <div style="text-align: center; padding-top: 5px; padding-bottom: 5px; margin-bottom: 15px;">
-            <h1 class="gradient-text" style="font-size: 3rem; margin: 0; padding: 0; line-height: 1;">IMMUNE X</h1>
+        <div style="background-color: #FFFFFF; text-align: center; padding: 15px 0px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.15);">
+            <h1 class="gradient-text" style="font-size: 2.6rem; margin: 0; padding: 0; line-height: 1; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 3px;">IMMUNE X</h1>
         </div>
         """,
         unsafe_allow_html=True
@@ -17,21 +17,12 @@ def render_header():
 def render_input_form() -> ImmuneInputs:
     """
     Renders the form with 23 inputs grouped logically.
-    Supports a clinical-to-normalized toggle for key biomarkers.
+    Takes inputs directly as raw clinical lab units.
     
     Returns:
         ImmuneInputs: Validated input schema model.
     """
     st.markdown('<h3 class="card-title">🧬 Patient Input Parameters</h3>', unsafe_allow_html=True)
-    
-    # Input Mode Toggle
-    input_mode = st.radio(
-        "Select Input Interface Mode:",
-        ["Raw Clinical Lab Units (Recommended)", "Direct Normalized Scores (0-100)"],
-        horizontal=True,
-        help="Raw Lab Units lets you input real values like CRP in mg/L and converts them. Direct Scores assumes all inputs are pre-normalized to a 0-100 scale."
-    )
-    
     st.write("---")
     
     # 4 tabs for logical grouping
@@ -50,34 +41,29 @@ def render_input_form() -> ImmuneInputs:
         col1, col2 = st.columns(2)
         
         with col1:
-            if input_mode == "Raw Clinical Lab Units (Recommended)":
-                raw_crp = st.number_input(
-                    "C-Reactive Protein (CRP) [mg/L]",
-                    min_value=0.0, max_value=100.0, value=1.5, step=0.1,
-                    help="Normal healthy level is typically < 1.0 mg/L. High risk > 3.0 mg/L. Values > 10.0 mg/L indicate acute inflammation."
-                )
-                vals['CRP'] = normalize_crp(raw_crp)
-                st.caption(f"Normalized CRP Score: **{vals['CRP']:.1f} / 100**")
-                
-                raw_il6 = st.number_input(
-                    "Interleukin-6 (IL-6) [pg/mL]",
-                    min_value=0.0, max_value=200.0, value=1.8, step=0.1,
-                    help="Normal range is typically < 2.0 pg/mL. Elevated levels represent systemic inflammation."
-                )
-                vals['IL6'] = normalize_il6(raw_il6)
-                st.caption(f"Normalized IL-6 Score: **{vals['IL6']:.1f} / 100**")
-                
-                raw_tnfa = st.number_input(
-                    "TNF-Alpha [pg/mL]",
-                    min_value=0.0, max_value=150.0, value=2.5, step=0.1,
-                    help="Tumor Necrosis Factor-alpha. Healthy baseline is < 3.0 pg/mL. High levels signify active immune response."
-                )
-                vals['TNFa'] = normalize_tnfa(raw_tnfa)
-                st.caption(f"Normalized TNF-Alpha Score: **{vals['TNFa']:.1f} / 100**")
-            else:
-                vals['CRP'] = st.slider("CRP Score", 0.0, 100.0, 15.0, step=1.0, help="Inflammatory marker (C-Reactive Protein)")
-                vals['IL6'] = st.slider("IL-6 Score", 0.0, 100.0, 18.0, step=1.0, help="Inflammatory cytokine (Interleukin-6)")
-                vals['TNFa'] = st.slider("TNF-Alpha Score", 0.0, 100.0, 20.0, step=1.0, help="Inflammatory cytokine (Tumor Necrosis Factor alpha)")
+            raw_crp = st.number_input(
+                "C-Reactive Protein (CRP) [mg/L]",
+                min_value=0.0, max_value=100.0, value=1.5, step=0.1,
+                help="Normal healthy level is typically < 1.0 mg/L. High risk > 3.0 mg/L. Values > 10.0 mg/L indicate acute inflammation."
+            )
+            vals['CRP'] = normalize_crp(raw_crp)
+            st.caption(f"Normalized CRP Score: **{vals['CRP']:.1f} / 100**")
+            
+            raw_il6 = st.number_input(
+                "Interleukin-6 (IL-6) [pg/mL]",
+                min_value=0.0, max_value=200.0, value=1.8, step=0.1,
+                help="Normal range is typically < 2.0 pg/mL. Elevated levels represent systemic inflammation."
+            )
+            vals['IL6'] = normalize_il6(raw_il6)
+            st.caption(f"Normalized IL-6 Score: **{vals['IL6']:.1f} / 100**")
+            
+            raw_tnfa = st.number_input(
+                "TNF-Alpha [pg/mL]",
+                min_value=0.0, max_value=150.0, value=2.5, step=0.1,
+                help="Tumor Necrosis Factor-alpha. Healthy baseline is < 3.0 pg/mL. High levels signify active immune response."
+            )
+            vals['TNFa'] = normalize_tnfa(raw_tnfa)
+            st.caption(f"Normalized TNF-Alpha Score: **{vals['TNFa']:.1f} / 100**")
             
             vals['TSCM'] = st.slider(
                 "T Memory Stem Cells (TSCM)", 
@@ -92,20 +78,13 @@ def render_input_form() -> ImmuneInputs:
                 help="Repertoire diversity of T-cells. Crucial for recognizing novel pathogens."
             )
             
-            if input_mode == "Raw Clinical Lab Units (Recommended)":
-                raw_ratio = st.number_input(
-                    "CD4/CD8 Ratio [Ratio Value]",
-                    min_value=0.0, max_value=10.0, value=1.8, step=0.1,
-                    help="Healthy ratio is typically between 1.0 and 4.0. Inversion (< 1.0) is a hallmark of immunosenescence."
-                )
-                vals['CD4_CD8_Ratio'] = normalize_cd4_cd8(raw_ratio)
-                st.caption(f"Normalized CD4/CD8 Score: **{vals['CD4_CD8_Ratio']:.1f} / 100**")
-            else:
-                vals['CD4_CD8_Ratio'] = st.slider(
-                    "CD4/CD8 Ratio Score", 
-                    0.0, 100.0, 85.0, step=1.0,
-                    help="Score based on CD4+ helper to CD8+ cytotoxic T cell balance."
-                )
+            raw_ratio = st.number_input(
+                "CD4/CD8 Ratio [Ratio Value]",
+                min_value=0.0, max_value=10.0, value=1.8, step=0.1,
+                help="Healthy ratio is typically between 1.0 and 4.0. Inversion (< 1.0) is a hallmark of immunosenescence."
+            )
+            vals['CD4_CD8_Ratio'] = normalize_cd4_cd8(raw_ratio)
+            st.caption(f"Normalized CD4/CD8 Score: **{vals['CD4_CD8_Ratio']:.1f} / 100**")
                 
             vals['NaiveT'] = st.slider(
                 "Naive T Cell Score", 

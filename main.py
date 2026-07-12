@@ -30,14 +30,13 @@ render_header()
 col_form, col_dash = st.columns([1, 1.3])
 
 with col_form:
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    # Render inputs and get validated pydantic object
-    try:
-        inputs = render_input_form()
-    except Exception as e:
-        st.error(f"Input validation error: {e}")
-        inputs = None
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        # Render inputs and get validated pydantic object
+        try:
+            inputs = render_input_form()
+        except Exception as e:
+            st.error(f"Input validation error: {e}")
+            inputs = None
 
 with col_dash:
     if inputs:
