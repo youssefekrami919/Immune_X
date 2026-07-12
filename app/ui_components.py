@@ -3,16 +3,16 @@ from src.engine.schemas import ImmuneInputs
 from src.utils.helpers import normalize_crp, normalize_il6, normalize_tnfa, normalize_cd4_cd8
 
 def render_header():
-    """Renders the dashboard header with the custom styling and tagline."""
+    """Renders the dashboard header with only the title top bar."""
     st.markdown(
         """
-        <div style="text-align: center; padding-top: 10px;">
-            <h1 class="gradient-text">IMMUNE X</h1>
-            <p class="gradient-subtext">AI-Driven Preventive Immune Memory Banking Engine & Dashboard</p>
+        <div style="text-align: center; padding-top: 5px; padding-bottom: 5px; margin-bottom: 15px;">
+            <h1 class="gradient-text" style="font-size: 3rem; margin: 0; padding: 0; line-height: 1;">IMMUNE X</h1>
         </div>
         """,
         unsafe_allow_html=True
     )
+
 
 def render_input_form() -> ImmuneInputs:
     """

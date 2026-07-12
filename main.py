@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Immune X - AI Memory Banking Engine",
     page_icon="🧬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # 2. Inject Custom CSS
@@ -22,39 +22,6 @@ def local_css(file_name):
 css_path = os.path.join(os.path.dirname(__file__), "app", "style.css")
 local_css(css_path)
 
-# 3. Sidebar Information
-st.sidebar.markdown(
-    """
-    <div style="text-align: center; padding: 10px;">
-        <h2 style="color: #00B4D8; font-weight: 700; margin-bottom: 5px;">IMMUNE X</h2>
-        <span style="background-color: #172A45; color: #00F5D4; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">MVP ENGINE v1.0</span>
-    </div>
-    <hr style="margin-top: 15px; margin-bottom: 15px; border-color: rgba(0, 180, 216, 0.2);"/>
-    """, 
-    unsafe_allow_html=True
-)
-
-st.sidebar.markdown("### 📋 Platform Info")
-st.sidebar.info(
-    "Immune X integrates cellular biomarkers, lifestyle factors, and clinical history "
-    "to optimize immune banking decisions and monitor longevity scores over time."
-)
-
-st.sidebar.markdown("### 🔧 Future ML Swapping")
-st.sidebar.warning(
-    "Currently operating on deterministic equations. The modular architecture is designed "
-    "to swap formulas directly with trained ML predictors (e.g. XGBoost, RF) without modifying the UI."
-)
-
-st.sidebar.markdown(
-    """
-    <hr style="border-color: rgba(0, 180, 216, 0.2);"/>
-    <div style="text-align: center; font-size: 0.8rem; color: #94A3B8;">
-        © 2026 Immune X Inc.<br>All rights reserved.
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
 
 # 4. Main App Layout
 render_header()

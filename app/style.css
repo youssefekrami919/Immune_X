@@ -117,3 +117,9 @@ button[aria-selected="true"] {
     margin-top: 15px;
     margin-bottom: 12px;
 }
+
+/* Completely hide the sidebar and the toggle collapse button */
+[data-testid="stSidebar"], [data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+}
+
