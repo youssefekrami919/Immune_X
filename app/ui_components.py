@@ -7,7 +7,8 @@ def render_header():
     st.markdown(
         """
         <div style="background-color: #FFFFFF; text-align: center; padding: 15px 0px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.15);">
-            <h1 class="gradient-text" style="font-size: 2.6rem; margin: 0; padding: 0; line-height: 1; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 3px;">IMMUNE X</h1>
+            <h1 class="gradient-text" style="font-size: 2.6rem; margin: 0; padding: 0; line-height: 1; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 3px; display: inline-block;">IMMUNE X</h1>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #172A45; font-weight: 600; margin-top: 4px; letter-spacing: 1.5px; opacity: 0.85;">Owner: Ahmed Allam</div>
         </div>
         """,
         unsafe_allow_html=True
