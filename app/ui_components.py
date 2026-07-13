@@ -8,7 +8,7 @@ def render_header():
         """
         <div style="background-color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px 0px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0, 180, 216, 0.15); border: 1px solid rgba(0, 180, 216, 0.15);">
             <h1 class="gradient-text" style="font-size: 2.6rem; margin: 0; padding: 0; line-height: 1.1; font-weight: 800; font-family: 'Outfit', sans-serif; letter-spacing: 3px; text-indent: 3px; text-align: center;">IMMUNE X</h1>
-            <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #172A45; font-weight: 600; margin-top: 6px; letter-spacing: 1.5px; text-indent: 1.5px; opacity: 0.85; text-align: center;">Idea Owner: Ahmed Allam</div>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #172A45; font-weight: 600; margin-top: 6px; letter-spacing: 1.5px; text-indent: 1.5px; opacity: 0.85; text-align: center;">Owner: Ahmed Allam</div>
         </div>
         """,
         unsafe_allow_html=True
