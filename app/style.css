@@ -135,3 +135,370 @@ div[data-testid="stVerticalBlockBorder"] h5 {
     text-align: center;
     line-height: 1.4;
 }
+
+
+/* ════════════════════════════════════════════════════════════
+   HOME PAGE — Welcome Banner
+═══════════════════════════════════════════════════════════════ */
+
+.home-welcome-banner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(135deg, rgba(0,180,216,0.08) 0%, rgba(114,9,183,0.08) 100%);
+    border: 1px solid rgba(0,180,216,0.2);
+    border-radius: 14px;
+    padding: 24px 30px;
+    margin-bottom: 10px;
+}
+
+.home-welcome-icon {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.home-welcome-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.7rem !important;
+    font-weight: 700 !important;
+    color: #F8FAFC !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.home-welcome-sub {
+    font-size: 0.95rem;
+    color: #94A3B8;
+    margin: 4px 0 0 0;
+}
+
+/* ════════════════════════════════════════════════════════════
+   HOME PAGE — Action Cards
+═══════════════════════════════════════════════════════════════ */
+
+.action-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.action-card-icon {
+    font-size: 1.4rem;
+}
+
+.action-card-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #F8FAFC;
+}
+
+.action-card-desc {
+    font-size: 0.88rem;
+    color: #94A3B8;
+    margin-bottom: 16px;
+    line-height: 1.55;
+}
+
+/* ════════════════════════════════════════════════════════════
+   HOME PAGE — Info Strip
+═══════════════════════════════════════════════════════════════ */
+
+.info-strip {
+    background: rgba(0,180,216,0.06);
+    border: 1px solid rgba(0,180,216,0.15);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    color: #94A3B8;
+    text-align: center;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PATIENT PROFILE — Header Card
+═══════════════════════════════════════════════════════════════ */
+
+.patient-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, rgba(23,42,69,0.9) 0%, rgba(114,9,183,0.12) 100%);
+    border: 1px solid rgba(0,180,216,0.25);
+    border-radius: 14px;
+    padding: 20px 28px;
+    margin-bottom: 8px;
+}
+
+.patient-header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.patient-avatar {
+    font-size: 2.6rem;
+    background: rgba(0,180,216,0.12);
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid rgba(0,180,216,0.25);
+    flex-shrink: 0;
+}
+
+.patient-label {
+    font-size: 0.78rem;
+    color: #94A3B8;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+
+.patient-id {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    letter-spacing: 1px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.patient-meta {
+    font-size: 0.82rem;
+    color: #64748B;
+    margin-top: 3px;
+}
+
+.patient-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.patient-status-pill {
+    background: rgba(0,245,212,0.1);
+    border: 1px solid rgba(0,245,212,0.3);
+    color: #00F5D4;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 5px 14px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SESSION LIST — Cards
+═══════════════════════════════════════════════════════════════ */
+
+.session-info {
+    padding: 4px 0;
+}
+
+.session-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    margin-bottom: 4px;
+}
+
+.session-date {
+    font-size: 0.82rem;
+    color: #64748B;
+}
+
+.session-scores-row {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.session-score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.score-label {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SESSION BADGES
+═══════════════════════════════════════════════════════════════ */
+
+.session-badge {
+    font-size: 0.76rem;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 3px 10px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.badge-good {
+    background: rgba(0,245,212,0.1);
+    border: 1px solid rgba(0,245,212,0.3);
+    color: #00F5D4;
+}
+
+.badge-fair {
+    background: rgba(255,190,11,0.1);
+    border: 1px solid rgba(255,190,11,0.3);
+    color: #FFBE0B;
+}
+
+.badge-poor {
+    background: rgba(247,37,133,0.1);
+    border: 1px solid rgba(247,37,133,0.3);
+    color: #F72585;
+}
+
+/* ════════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════════════ */
+
+.empty-state-card {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(23,42,69,0.4);
+    border: 1px dashed rgba(0,180,216,0.2);
+    border-radius: 12px;
+    color: #64748B;
+    margin-bottom: 20px;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.empty-state-hint {
+    font-size: 0.85rem;
+    color: #475569;
+    margin-top: 6px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SESSION RESULT — Header
+═══════════════════════════════════════════════════════════════ */
+
+.session-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 14px;
+    padding: 20px 28px;
+    margin-bottom: 8px;
+}
+
+.srh-label {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+}
+
+.srh-id {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #F8FAFC;
+}
+
+.srh-meta {
+    font-size: 0.82rem;
+    color: #64748B;
+    margin-top: 4px;
+}
+
+.srh-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.srh-kpi {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.srh-kpi-label {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.srh-kpi-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.srh-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SESSION RESULT — Inputs Summary
+═══════════════════════════════════════════════════════════════ */
+
+.input-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 12px;
+    border-bottom: 1px solid rgba(148,163,184,0.08);
+    border-radius: 4px;
+    margin-bottom: 2px;
+    transition: background 0.15s ease;
+}
+
+.input-summary-row:hover {
+    background: rgba(0,180,216,0.05);
+}
+
+.input-summary-label {
+    font-size: 0.84rem;
+    color: #94A3B8;
+}
+
+.input-summary-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #F8FAFC;
+}
+
+.input-summary-unit {
+    font-size: 0.72rem;
+    color: #64748B;
+    margin-left: 4px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SECTION DESCRIPTION TEXT
+═══════════════════════════════════════════════════════════════ */
+
+.section-desc {
+    font-size: 0.88rem;
+    color: #94A3B8;
+    margin-top: -6px;
+    margin-bottom: 12px;
+}

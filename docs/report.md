@@ -115,3 +115,137 @@ Input structures are checked against strict Pydantic requirements:
 * `src.engine.schemas.ImmuneInputs`
 
 This design ensures that if any mathematical equation is replaced in the future with a machine learning model, only the model execution logic inside `src.models/` needs to change; the validation boundary, API structure, and frontend Streamlit app will remain completely untouched.
+
+---
+
+## 🏥 Clinical Platform Architecture (v2)
+
+**Idea Owner: Ahmed Allam**
+
+Version 2 of IMMUNE X transforms the single-page calculation tool into a full multi-patient clinical management platform designed for use by licensed medical professionals and laboratory specialists.
+
+### Application Pages
+
+The app now uses a **3-page navigation model** managed via `st.session_state["page"]`:
+
+| Page | Key | Description |
+|---|---|---|
+| Home | `home` | Register new patient or open existing patient by National ID |
+| Patient Profile | `patient` | View session history, compare sessions, add new session |
+| Session Results | `session_result` | Full dashboard + 23-input summary for one selected session |
+
+### Data Flow
+
+```text
+Doctor enters National ID
+         │
+         ▼
+  ┌─────────────────┐
+  │  Home Page      │ ── Register ──► MySQL: INSERT patients
+  │  (page_home)    │ ── Open ──────► MySQL: SELECT patients WHERE national_id = ?
+  └─────────────────┘
+         │
+         ▼ (on patient found)
+  ┌─────────────────────────┐
+  │  Patient Profile        │ ── Load sessions ──► MySQL: SELECT sessions WHERE national_id = ?
+  │  (page_patient)         │ ── Save session ───► calculate_immune_metrics() ──► MySQL: INSERT sessions
+  └─────────────────────────┘
+         │
+         ▼ (on "Show Results")
+  ┌─────────────────────────┐
+  │  Session Results        │ ── Reconstructs ImmuneInputs + ImmuneOutputs from JSON
+  │  (page_session_result)  │ ── Calls render_dashboard() with stored data
+  └─────────────────────────┘
+```
+
+---
+
+## 🗄️ Database Schema
+
+The application uses a remote MySQL database (freesqldatabase.com). Tables are automatically created on first launch via `init_db()`.
+
+### `patients` table
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT PK | Internal identifier |
+| `national_id` | VARCHAR(100) UNIQUE | Patient National ID (primary lookup key) |
+| `created_at` | TIMESTAMP | Registration timestamp |
+
+### `sessions` table
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT PK | Internal session identifier |
+| `patient_national_id` | VARCHAR(100) FK | References `patients.national_id` |
+| `session_date` | TIMESTAMP | Session creation timestamp |
+| `inputs_json` | TEXT | All 23 `ImmuneInputs` fields serialised as JSON |
+| `outputs_json` | TEXT | All 11 `ImmuneOutputs` fields serialised as JSON |
+| `ihi_score` | FLOAT | Denormalised IHI for fast sorting/comparison |
+| `bes_score` | FLOAT | Denormalised BES for fast filtering |
+
+```sql
+CREATE TABLE IF NOT EXISTS patients (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    national_id  VARCHAR(100) UNIQUE NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
+    patient_national_id  VARCHAR(100) NOT NULL,
+    session_date         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    inputs_json          TEXT NOT NULL,
+    outputs_json         TEXT NOT NULL,
+    ihi_score            FLOAT NOT NULL,
+    bes_score            FLOAT NOT NULL,
+    FOREIGN KEY (patient_national_id)
+        REFERENCES patients(national_id)
+        ON DELETE CASCADE
+);
+```
+
+---
+
+## 📊 Session Quality Classification
+
+Sessions are automatically classified and badged based on IHI and BES scores:
+
+### Immune Health Index (IHI) — Overall Immune State
+
+| Range | Badge | Clinical Interpretation |
+|---|---|---|
+| IHI ≥ 75 | 🟢 Optimal | Excellent immune state; cells are highly suitable for banking |
+| 50 ≤ IHI < 75 | 🟡 Fair | Acceptable; lifestyle optimisation recommended before banking |
+| IHI < 50 | 🔴 High Risk | Elevated immunosenescence; pre-treatment stabilisation required |
+
+### Biobanking Eligibility Score (BES)
+
+| Range | Badge | Clinical Interpretation |
+|---|---|---|
+| BES ≥ 75 | ✅ Highly Eligible | Immediate biobanking recommended |
+| 50 ≤ BES < 75 | 🔵 Eligible | Eligible with minor inflammatory marker improvement |
+| BES < 50 | ⚠️ Not Eligible | Postpone banking; address comorbidities and inflammation first |
+
+### Best Session Detection
+
+When a patient has more than one session, the system identifies the **best session** as the one with the highest IHI score. This session is:
+- Marked with a ⭐ star in the session list card
+- Highlighted with a gold `#FFBE0B` star marker on the trend chart
+
+The session trend chart plots both IHI and BES across all sessions chronologically, with:
+- Reference lines at IHI = 75 (Optimal threshold) and IHI = 50 (Fair threshold)
+- A secondary BES dotted line for cross-metric trend analysis
+
+---
+
+## 🔐 Secrets & Credentials
+
+All database credentials are stored exclusively in `.streamlit/secrets.toml` (local) or Streamlit Cloud secrets (deployment). They are never present in source code.
+
+The database layer (`src/database/db.py`) reads credentials via:
+```python
+cfg = st.secrets["mysql"]
+```
+
+Required keys: `host`, `database`, `user`, `password`, `port`.
