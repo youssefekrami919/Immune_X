@@ -8,6 +8,8 @@ plus an expandable table of all 23 recorded inputs.
 import json
 import streamlit as st
 from src.engine.schemas import ImmuneInputs, ImmuneOutputs
+from src.engine import calculate_immune_metrics
+from src.database import get_sessions
 from app.dashboard import render_dashboard
 
 
