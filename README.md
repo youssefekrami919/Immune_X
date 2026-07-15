@@ -161,6 +161,16 @@ Home Page  →  Patient Profile  →  Session Results
 | 50 – 74 | 🔵 Eligible | Eligible with minor optimisation needed |
 | 0 – 49 | ⚠️ Not Eligible | Postpone — address inflammation/health metrics |
 
+### 🎯 Re-Banking Index — Visual Risk Gauge
+
+The Re-Banking Index features a custom visual gauge displaying a **dual-value metric** (raw clinical value + normalized 0-100 position) with three distinct zone ranges:
+
+* 🟢 **Safe Zone (Bar position 0 to 40)**: Raw value is below 2.0. Status is Stable (No Re-Banking needed).
+* 🔵 **Caution Zone (Bar position 40 to 60)**: Raw value is between 2.0 and 8.0. Status is Monitor (Approaching threshold).
+* 🔴 **Critical Zone (Bar position 60 to 100)**: Raw value is above 8.0. Status is Action Required (Re-Banking recommended).
+
+> ⚠ **Action Threshold**: The clinical action threshold of **`Raw: 5.0`** maps exactly to **`Position: 50`** on the 0-100 scale, indicated by a dashed red line.
+
 ---
 
 ## 🗄️ Database Schema

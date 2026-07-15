@@ -3,6 +3,147 @@ import plotly.graph_objects as go
 from src.engine.schemas import ImmuneOutputs, ImmuneInputs
 
 
+def _render_rebanking_bar(raw_value: float):
+    """
+    Render a horizontal colored gauge bar for the Re-Banking Index.
+
+    Visual display range: [-10, 20]  (practical clinical range)
+      raw = -10  → bar position =   0  (fully stable)
+      raw =   0  → bar position =  33  (no concern)
+      raw =   5  → bar position =  50  (action threshold)
+      raw =  20  → bar position = 100  (critical)
+
+    Color zones:
+      Green  (0–40):   Safe zone      — raw value is comfortably below threshold
+      Blue  (40–60):   Caution zone   — raw value is approaching the threshold
+      Red   (60–100):  Critical zone  — action required, re-banking needed
+    """
+    DISPLAY_MIN, DISPLAY_MAX = -10.0, 20.0
+    DISPLAY_RANGE = DISPLAY_MAX - DISPLAY_MIN  # 30
+
+    def _pos(v: float) -> float:
+        return max(0.0, min(100.0, ((v - DISPLAY_MIN) / DISPLAY_RANGE) * 100.0))
+
+    bar_pos = _pos(raw_value)
+    thresh_pos = _pos(5.0)   # 50.0 — action threshold
+    zero_pos = _pos(0.0)     # 33.3 — "no concern" reference
+
+    # Determine status color for the marker
+    if raw_value < 0:
+        color_marker = "#00F5D4"  # teal
+    elif raw_value < 5.0:
+        color_marker = "#00B4D8"  # blue
+    else:
+        color_marker = "#F72585"  # red
+
+    # Visual zone boundaries
+    green_end = 40.0
+    blue_end = 60.0
+
+    fig = go.Figure()
+
+    # ── Colored zone rectangles ──────────────────────────────────────
+    shapes = [
+        # Green: safe zone
+        dict(type="rect", xref="x", yref="paper",
+             x0=0, x1=green_end, y0=0.12, y1=0.88,
+             fillcolor="rgba(0,245,212,0.15)",
+             line=dict(width=1, color="rgba(0,245,212,0.2)")),
+        # Blue: caution zone
+        dict(type="rect", xref="x", yref="paper",
+             x0=green_end, x1=blue_end, y0=0.12, y1=0.88,
+             fillcolor="rgba(0,180,216,0.22)",
+             line=dict(width=1, color="rgba(0,180,216,0.3)")),
+        # Red: critical zone
+        dict(type="rect", xref="x", yref="paper",
+             x0=blue_end, x1=100, y0=0.12, y1=0.88,
+             fillcolor="rgba(247,37,133,0.15)",
+             line=dict(width=1, color="rgba(247,37,133,0.2)")),
+        # ── Reference line: raw=0 ("stable") ──
+        dict(type="line", xref="x", yref="paper",
+             x0=zero_pos, x1=zero_pos, y0=0, y1=1,
+             line=dict(color="rgba(0,245,212,0.45)", width=1.5, dash="dot")),
+        # ── Threshold line: raw=5 (action required) ──
+        dict(type="line", xref="x", yref="paper",
+             x0=thresh_pos, x1=thresh_pos, y0=0, y1=1,
+             line=dict(color="rgba(247,37,133,0.85)", width=2.5, dash="dash")),
+        # ── Current value line ──
+        dict(type="line", xref="x", yref="paper",
+             x0=bar_pos, x1=bar_pos, y0=0, y1=1,
+             line=dict(color=color_marker, width=3.5)),
+    ]
+
+    # ── Zone text labels ──────────────────────────────────────────────
+    fig.add_trace(go.Scatter(
+        x=[20.0, 50.0, 80.0],
+        y=[0.5, 0.5, 0.5],
+        mode="text",
+        text=["🟢  Safe Zone", "🔵 Caution", "🔴  Critical"],
+        textfont=dict(
+            color=["rgba(0,245,212,0.75)",
+                   "rgba(0,180,216,0.85)",
+                   "rgba(247,37,133,0.75)"],
+            size=11,
+            family="Outfit",
+        ),
+        showlegend=False,
+        hoverinfo="skip",
+    ))
+
+    # ── Current value marker (triangle + hover tooltip) ───────────────
+    fig.add_trace(go.Scatter(
+        x=[bar_pos],
+        y=[0.5],
+        mode="markers",
+        marker=dict(
+            size=18,
+            color=color_marker,
+            symbol="triangle-up",
+            line=dict(color="#FFFFFF", width=2),
+        ),
+        showlegend=False,
+        hovertemplate=(
+            f"<b>Re-Banking Index</b><br>"
+            f"Raw Clinical Value : <b>{raw_value:.3f}</b><br>"
+            f"Bar Position (0-100): <b>{bar_pos:.1f}</b><br>"
+            f"──────────────<br>"
+            f"⚠ Action Threshold = Raw 5.0  (Position: {thresh_pos:.0f}/100)"
+            "<extra></extra>"
+        ),
+    ))
+
+    fig.update_layout(
+        shapes=shapes,
+        xaxis=dict(
+            range=[0, 100],
+            tickmode="array",
+            tickvals=[0, zero_pos, thresh_pos, 75, 100],
+            ticktext=[
+                "0",
+                f"{zero_pos:.0f}<br><span style='color:#00F5D4;font-size:9px'>Raw 0</span>",
+                f"<b>{thresh_pos:.0f}</b><br><span style='color:#F72585;font-size:9px'>⚠ Raw 5</span>",
+                "75",
+                "100",
+            ],
+            tickfont=dict(color="#94A3B8", size=10, family="Outfit"),
+            showgrid=False,
+            zeroline=False,
+            showline=True,
+            linecolor="rgba(148,163,184,0.25)",
+            linewidth=1,
+        ),
+        yaxis=dict(visible=False, range=[0, 1]),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=105,
+        margin=dict(l=10, r=10, t=5, b=48),
+        showlegend=False,
+        font=dict(family="Outfit", color="#F8FAFC"),
+    )
+
+    return fig
+
+
 def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
     """
     Renders the visual dashboard displaying all 11 outputs.
@@ -260,7 +401,74 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
     st.write("---")
 
     # ─────────────────────────────────────────────
-    # 6. Clinical Analysis & Recommendations
+    # 6. Re-Banking Index — Visual Risk Gauge
+    # ─────────────────────────────────────────────
+    st.markdown('<h3 class="card-title">🎯 Re-Banking Index — Risk Position Gauge</h3>', unsafe_allow_html=True)
+
+    with st.container(border=True):
+        raw_rbi = outputs.ReBankingIndex
+        DISPLAY_MIN_RBI, DISPLAY_MAX_RBI = -10.0, 20.0
+        bar_pos_rbi = max(0.0, min(100.0,
+            ((raw_rbi - DISPLAY_MIN_RBI) / (DISPLAY_MAX_RBI - DISPLAY_MIN_RBI)) * 100.0
+        ))
+
+        if raw_rbi < 0:
+            rbi_color, rbi_icon, rbi_label = "#00F5D4", "🟢", "Stable — No Re-Banking Needed"
+        elif raw_rbi < 5.0:
+            rbi_color, rbi_icon, rbi_label = "#00B4D8", "🔵", "Monitor — Approaching Threshold"
+        else:
+            rbi_color, rbi_icon, rbi_label = "#F72585", "🔴", "Action Required — Re-Banking Recommended"
+
+        # ── Dual-value header ──
+        st.markdown(
+            f"""
+            <div style="display:flex; justify-content:space-between; align-items:center;
+                        padding: 8px 4px 4px 4px;">
+                <div>
+                    <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:3px;">Raw Clinical Value</div>
+                    <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
+                        {raw_rbi:.3f}
+                    </span>
+                    <span style="font-size:0.82rem; color:#64748B;"> &nbsp;/ Action Threshold: <b style='color:#F72585;'>5.0</b></span>
+                </div>
+                <div style="text-align:center;">
+                    <span style="font-size:1rem; font-weight:600; color:{rbi_color};">
+                        {rbi_icon} {rbi_label}
+                    </span>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:3px;">Bar Position (0–100)</div>
+                    <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
+                        {bar_pos_rbi:.1f}
+                    </span>
+                    <span style="font-size:0.82rem; color:#64748B;"> / 100 &nbsp;(⚠ threshold at 50)</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.plotly_chart(_render_rebanking_bar(raw_rbi), use_container_width=True)
+
+        st.markdown(
+            """
+            <div style="font-size:0.78rem; color:#64748B; text-align:center; padding: 2px 0 4px 0;">
+                🟢 Safe Zone (pos 0–40 / raw &lt; 2) &nbsp;|&nbsp;
+                🔵 Caution Zone (pos 40–60 / raw 2–8) &nbsp;|&nbsp;
+                🔴 Critical Zone (pos 60–100 / raw &gt; 8)
+                &nbsp;&nbsp;·&nbsp;&nbsp;
+                <span style='color:rgba(247,37,133,0.8);'>⚠ Dashed red line = Action Threshold (Raw: 5.0 / Position: 50)</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.write("---")
+
+    # ─────────────────────────────────────────────
+    # 7. Clinical Analysis & Recommendations
     # ─────────────────────────────────────────────
     st.markdown('<h3 class="card-title">🩺 Clinical Analysis &amp; Recommendations</h3>', unsafe_allow_html=True)
 

@@ -237,6 +237,23 @@ The session trend chart plots both IHI and BES across all sessions chronological
 - Reference lines at IHI = 75 (Optimal threshold) and IHI = 50 (Fair threshold)
 - A secondary BES dotted line for cross-metric trend analysis
 
+### Re-Banking Index — Visual Risk Gauge
+
+The Re-Banking Index uses a dedicated horizontal gauge to map the raw clinical calculation to a unified 0-100 visual scale. This allows clinicians to instantly interpret the urgency of taking new cell samples:
+
+#### Visual Mapping Scale
+- **Raw Clinical Range**: Maps the values from **`-10.0`** (completely stable) to **`20.0`** (critical danger) onto a **`0`** to **`100`** bar position.
+- **Formula**: `BarPosition = ((RawValue - (-10.0)) / 30.0) * 100.0` (clamped between 0 and 100).
+- **Zero Reference**: A raw value of `0.0` (no change in health) corresponds to position **`33`** on the bar.
+- **Action Threshold**: The clinical action threshold of **`5.0`** corresponds exactly to position **`50`** on the bar.
+
+#### Visual Zones
+- 🟢 **Safe Zone (Bar position 0 to 40)**: Raw value is comfortably below the concern threshold.
+- 🔵 **Caution Zone (Bar position 40 to 60)**: Raw value is approaching or slightly around the action threshold.
+- 🔴 **Critical Zone (Bar position 60 to 100)**: Raw value indicates rapid immune decline/aging; immediate re-banking is recommended.
+
+The interface presents **dual values** simultaneously: the raw clinical score (e.g., `5.034`) and the normalised bar position (e.g., `50.1 / 100`).
+
 ---
 
 ## 🔐 Secrets & Credentials
