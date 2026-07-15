@@ -165,8 +165,8 @@ Home Page  →  Patient Profile  →  Session Results
 
 The Re-Banking Index features a custom visual gauge displaying a **dual-value metric** (raw clinical value + normalized 0-100 position) with two distinct zones:
 
-* ✅ **Keep Zone (Bar position 0 to 50)**: Raw value is below 5.0. Status is Keep (No Re-Banking needed).
-* 🔄 **Rebank Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Status is Rebank (Re-Banking recommended).
+* 🔄 **Rebank Zone (Bar position 0 to 50)**: Raw value is below 5.0. Status is Rebank (Re-Banking recommended).
+* ✅ **Keep Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Status is Keep (No Re-Banking needed).
 
 > ⚠ **Rebank Threshold**: The clinical action threshold of **`Raw: 5.0`** maps exactly to **`Position: 50`** on the 0-100 scale, indicated by a dashed red line.
 

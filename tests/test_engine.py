@@ -63,9 +63,9 @@ def test_engine_calculations():
     # = 4.35 - 0.50 + 9.0 + 0 + 1.5 = 14.35
     assert outputs.IDRS == pytest.approx(14.35)
     
-    # 10. Re-Banking Index = 0.50(-1.5) + 0.30(3.5) + 0.20(14.35)
-    # = -0.75 + 1.05 + 2.87 = 3.17
-    assert outputs.ReBankingIndex == pytest.approx(3.17)
+    # 10. Re-Banking Index = 0.50(-1.5) - 0.30(3.5) + 0.20(14.35)
+    # = -0.75 - 1.05 + 2.87 = 1.07
+    assert outputs.ReBankingIndex == pytest.approx(1.07)
     
     # 11. IHI = 0.40(70.05) + 0.30(100 - 14.35) + 0.30(72.48) = 28.02 + 25.695 + 21.744 = 75.459
     assert outputs.IHI == pytest.approx(75.459)

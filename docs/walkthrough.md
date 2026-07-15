@@ -23,7 +23,7 @@ This document tracks all features, architectural changes, logic updates, and dat
 
 ### Phase 3: Logical Corrections & Input Automation [Latest]
 - **Re-banking Logic Refinement (Risk/Decline Index)**:
-  - Re-Banking Index formula uses the official engine specifications: `ReBankingIndex = 0.50(DeltaImmuneAge) + 0.30(DeltaIMQS) + 0.20(IDRS)`.
+  - Re-Banking Index formula uses the official engine specifications: `ReBankingIndex = 0.50(DeltaImmuneAge) - 0.30(DeltaIMQS) + 0.20(IDRS)`.
   - The index is a **Risk/Decline Index**. 
   - **High Score (>= 5.0)**: Represents immune decline. The automated decision is **Keep** (retain the previous excellent sample).
   - **Low Score (< 5.0)**: Represents optimal health improvement. The automated decision is **Rebank** (capture the superior state immediately).

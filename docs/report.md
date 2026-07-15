@@ -76,7 +76,7 @@ $$IDRS = 0.30(IS) + 0.25(ImmuneAgeGap) + 0.15(BMI\_Score) + 0.15(Smoking\_Score)
 
 #### 10. Re-Banking Index (RBI)
 Used to flag if previous biobanked samples need updating or cell boosting.
-$$ReBankingIndex = 0.50(DeltaImmuneAge) + 0.30(DeltaIMQS) + 0.20(IDRS)$$
+$$ReBankingIndex = 0.50(DeltaImmuneAge) - 0.30(DeltaIMQS) + 0.20(IDRS)$$
 
 #### 11. Immune Health Index (IHI)
 The high-level overall summary metric of immune system durability.
@@ -245,11 +245,11 @@ The Re-Banking Index uses a dedicated horizontal gauge to map the raw clinical c
 - **Raw Clinical Range**: Maps the values from **`-10.0`** to **`20.0`** onto a **`0`** to **`100`** bar position.
 - **Formula**: `BarPosition = ((RawValue - (-10.0)) / 30.0) * 100.0` (clamped between 0 and 100).
 - **Rebank Threshold**: The clinical re-banking threshold of **`5.0`** corresponds exactly to position **`50`** on the bar.
-- **Peak Health Capture Logic**: Re-banking is suggested (`RBI >= 5.0`) **only** when the current session's health is **better** than the previous session's health (meaning biological immune age got younger and/or memory quality improved). If there is no change or a decline in health, the system recommends **Keeping** the old sample (`RBI < 5.0`) since the old sample is of superior quality.
+- **Peak Health Capture Logic**: Re-banking is suggested (`RBI < 5.0`) **only** when the current session's health is **better** than the previous session's health (meaning biological immune age got younger and/or memory quality improved). If there is no change or a decline in health, the system recommends **Keeping** the old sample (`RBI >= 5.0`) since the old sample is of superior quality.
 
 #### Visual Zones
-- ✅ **Keep Zone (Bar position 0 to 50)**: Raw value is below 5.0. Indicates stable, declining, or first-session status; current biobanked samples are sufficient.
-- 🔄 **Rebank Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Indicates significant improvement in immune health since the last storage; immediate re-banking is recommended to preserve this peak state.
+- 🔄 **Rebank Zone (Bar position 0 to 50)**: Raw value is below 5.0. Indicates significant improvement in immune health since the last storage; immediate re-banking is recommended to preserve this peak state.
+- ✅ **Keep Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Indicates stable, declining, or first-session status; current biobanked samples are sufficient.
 
 #### Temporal Input Automation
 - **First Session**: Both `DeltaImmuneAge` and `DeltaIMQS` are automatically set to `0.0` (forced/read-only).
