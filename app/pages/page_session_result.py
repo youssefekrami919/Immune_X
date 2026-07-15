@@ -70,6 +70,7 @@ def page_session_result():
     session_label = st.session_state.get("session_label", "Session")
     session_date = st.session_state.get("session_date", "")
     back_patient = st.session_state.get("back_patient")
+    is_first_session = st.session_state.get("is_first_session", False)
 
     if not inputs_data or not outputs_data:
         _nav("home")
@@ -144,7 +145,7 @@ def page_session_result():
         return
 
     # ── Full Dashboard ──────────────────────────────────────────────────────
-    render_dashboard(inputs_obj, outputs_obj)
+    render_dashboard(inputs_obj, outputs_obj, is_first_session)
 
     # ── Inputs Summary ──────────────────────────────────────────────────────
     st.write("---")

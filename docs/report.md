@@ -241,18 +241,22 @@ The session trend chart plots both IHI and BES across all sessions chronological
 
 The Re-Banking Index uses a dedicated horizontal gauge to map the raw clinical calculation to a unified 0-100 visual scale. This allows clinicians to instantly interpret the urgency of taking new cell samples:
 
-#### Visual Mapping Scale
-- **Raw Clinical Range**: Maps the values from **`-10.0`** (completely stable) to **`20.0`** (critical danger) onto a **`0`** to **`100`** bar position.
+#### Visual Mapping Scale & Logic
+- **Raw Clinical Range**: Maps the values from **`-10.0`** to **`20.0`** onto a **`0`** to **`100`** bar position.
 - **Formula**: `BarPosition = ((RawValue - (-10.0)) / 30.0) * 100.0` (clamped between 0 and 100).
-- **Zero Reference**: A raw value of `0.0` (no change in health) corresponds to position **`33`** on the bar.
-- **Action Threshold**: The clinical action threshold of **`5.0`** corresponds exactly to position **`50`** on the bar.
+- **Rebank Threshold**: The clinical re-banking threshold of **`5.0`** corresponds exactly to position **`50`** on the bar.
+- **Peak Health Capture Logic**: Re-banking is suggested (`RBI >= 5.0`) **only** when the current session's health is **better** than the previous session's health (meaning biological immune age got younger and/or memory quality improved). If there is no change or a decline in health, the system recommends **Keeping** the old sample (`RBI < 5.0`) since the old sample is of superior quality.
 
 #### Visual Zones
-- 🟢 **Safe Zone (Bar position 0 to 40)**: Raw value is comfortably below the concern threshold.
-- 🔵 **Caution Zone (Bar position 40 to 60)**: Raw value is approaching or slightly around the action threshold.
-- 🔴 **Critical Zone (Bar position 60 to 100)**: Raw value indicates rapid immune decline/aging; immediate re-banking is recommended.
+- ✅ **Keep Zone (Bar position 0 to 50)**: Raw value is below 5.0. Indicates stable, declining, or first-session status; current biobanked samples are sufficient.
+- 🔄 **Rebank Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Indicates significant improvement in immune health since the last storage; immediate re-banking is recommended to preserve this peak state.
 
-The interface presents **dual values** simultaneously: the raw clinical score (e.g., `5.034`) and the normalised bar position (e.g., `50.1 / 100`).
+#### Temporal Input Automation
+- **First Session**: Both `DeltaImmuneAge` and `DeltaIMQS` are automatically set to `0.0` (forced/read-only).
+- **Subsequent Sessions**: System dynamically retrieves the previous session's inputs/outputs from the database and live-calculates:
+  - `DeltaImmuneAge = Current_ImmuneAge - Previous_ImmuneAge`
+  - `DeltaIMQS = Current_IMQS - Previous_IMQS`
+  These fields are disabled (read-only) in the user interface to guarantee data accuracy.
 
 ---
 

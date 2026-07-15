@@ -256,6 +256,7 @@ def page_patient():
                             session_label=session_label,
                             session_date=date_str,
                             back_patient=patient,
+                            is_first_session=(i == 0),
                         )
 
     # ── Add New Session ──────────────────────────────────────────────────────
@@ -265,7 +266,8 @@ def page_patient():
     with st.expander("📝 Open Immune Assessment Form", expanded=len(sessions) == 0):
         with st.form(key="new_session_form"):
             try:
-                inputs = render_input_form()
+                prev_sess = sessions[-1] if sessions else None
+                inputs = render_input_form(previous_session=prev_sess)
             except Exception as e:
                 st.error(f"Input validation error: {e}")
                 inputs = None

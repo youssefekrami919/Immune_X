@@ -1,3 +1,4 @@
+import json
 import streamlit as st
 from src.engine.schemas import ImmuneInputs
 from src.utils.helpers import normalize_crp, normalize_il6, normalize_tnfa, normalize_cd4_cd8
@@ -15,10 +16,13 @@ def render_header():
     )
 
 
-def render_input_form() -> ImmuneInputs:
+def render_input_form(previous_session: dict = None) -> ImmuneInputs:
     """
     Renders the form with 23 inputs grouped logically.
     Takes inputs directly as raw clinical lab units.
+    
+    Arguments:
+        previous_session (dict): Optional dict representing the previous session's raw DB data.
     
     Returns:
         ImmuneInputs: Validated input schema model.
@@ -126,6 +130,16 @@ def render_input_form() -> ImmuneInputs:
         st.markdown('<div class="form-section-header">Biological Immune Age & Longitudinal History</div>', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         
+        # 1. Gather historical data if previous session exists
+        if previous_session:
+            prev_inputs = json.loads(previous_session["inputs_json"])
+            prev_outputs = json.loads(previous_session["outputs_json"])
+            immune_age_prev = float(prev_inputs.get("ImmuneAge", 0.0))
+            imqs_prev = float(prev_outputs.get("IMQS", 0.0))
+        else:
+            immune_age_prev = None
+            imqs_prev = None
+
         with col1:
             vals['ImmuneAge'] = st.number_input(
                 "Biological Immune Age (years)", 
@@ -133,17 +147,61 @@ def render_input_form() -> ImmuneInputs:
                 help="Estimated age of the immune system based on epigenetic clocks or cellular assays."
             )
             
-            vals['DeltaImmuneAge'] = st.number_input(
-                "Delta Immune Age (years)", 
-                min_value=-50.0, max_value=50.0, value=-1.5, step=0.1,
-                help="Longitudinal change in biological immune age compared to previous tests. Negative is good."
-            )
+            # Auto-calculate Delta Immune Age
+            if immune_age_prev is not None:
+                delta_immune_age = float(vals['ImmuneAge'] - immune_age_prev)
+                st.info(f"Previous Biological Immune Age: **{immune_age_prev:.1f} years**")
+                vals['DeltaImmuneAge'] = st.number_input(
+                    "Delta Immune Age (years) [Auto-calculated]", 
+                    value=delta_immune_age,
+                    disabled=True,
+                    help="Calculated as: Current Biological Immune Age - Previous Biological Immune Age."
+                )
+            else:
+                vals['DeltaImmuneAge'] = st.number_input(
+                    "Delta Immune Age (years) [Forced to 0 for First Session]", 
+                    value=0.0,
+                    disabled=True,
+                    help="Always 0 for the first session."
+                )
             
         with col2:
-            vals['DeltaIMQS'] = st.number_input(
-                "Delta IMQS Score", 
-                min_value=-100.0, max_value=100.0, value=4.5, step=0.1,
-                help="Longitudinal change in the calculated Immune Memory Quality Score. Positive is good."
+            # Auto-calculate current IMQS value to get Delta IMQS
+            # IMQS = 0.25*TSCM + 0.20*TCRD + 0.15*CD4_CD8_Ratio + 0.10*NaiveT + 0.10*VRS + 0.10*IS + 0.05*LS + 0.05*AF
+            is_score = 0.40 * vals['CRP'] + 0.30 * vals['IL6'] + 0.30 * vals['TNFa']
+            ls_score = 0.30 * vals['Exercise_Score'] + 0.30 * vals['Sleep_Score'] + 0.20 * vals['BMI_Score'] + 0.20 * (100.0 - vals['Smoking_Score'])
+            vrs_score = 0.50 * vals['Antibody_Response'] + 0.30 * vals['T_cell_Response'] + 0.20 * vals['Response_Durability']
+            
+            expected_lifespan = max(vals['Expected_Lifespan'], 1.0)
+            af_score = 100.0 - ((vals['Age'] / expected_lifespan) * 100.0)
+            
+            imqs_curr = (
+                0.25 * vals['TSCM'] +
+                0.20 * vals['TCRD'] +
+                0.15 * vals['CD4_CD8_Ratio'] +
+                0.10 * vals['NaiveT'] +
+                0.10 * vrs_score +
+                0.10 * is_score +
+                0.05 * ls_score +
+                0.05 * af_score
             )
             
+            if imqs_prev is not None:
+                delta_imqs = float(imqs_curr - imqs_prev)
+                st.info(f"Previous IMQS Score: **{imqs_prev:.2f}**")
+                vals['DeltaIMQS'] = st.number_input(
+                    "Delta IMQS Score [Auto-calculated]",
+                    value=delta_imqs,
+                    disabled=True,
+                    help="Calculated as: Current IMQS - Previous IMQS."
+                )
+            else:
+                vals['DeltaIMQS'] = st.number_input(
+                    "Delta IMQS Score [Forced to 0 for First Session]",
+                    value=0.0,
+                    disabled=True,
+                    help="Always 0 for the first session."
+                )
+            
     return ImmuneInputs(**vals)
+

@@ -56,6 +56,7 @@ def calculate_immune_metrics(inputs: ImmuneInputs) -> ImmuneOutputs:
     )
     
     # 10. Re-Banking Index (RBI)
+    # Re-Banking Index = 0.50(DeltaImmuneAge) + 0.30(DeltaIMQS) + 0.20(IDRS)
     rebanking_index = 0.50 * inputs.DeltaImmuneAge + 0.30 * inputs.DeltaIMQS + 0.20 * idrs_score
     
     # 11. Immune Health Index (IHI)

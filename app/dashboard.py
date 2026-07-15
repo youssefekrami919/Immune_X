@@ -5,18 +5,16 @@ from src.engine.schemas import ImmuneOutputs, ImmuneInputs
 
 def _render_rebanking_bar(raw_value: float):
     """
-    Render a horizontal colored gauge bar for the Re-Banking Index.
+    Render a two-zone horizontal gauge bar for the Re-Banking Index.
 
     Visual display range: [-10, 20]  (practical clinical range)
-      raw = -10  → bar position =   0  (fully stable)
-      raw =   0  → bar position =  33  (no concern)
-      raw =   5  → bar position =  50  (action threshold)
-      raw =  20  → bar position = 100  (critical)
+      raw = -10  → bar position =   0
+      raw =   5  → bar position =  50  (Rebank threshold)
+      raw =  20  → bar position = 100
 
-    Color zones:
-      Green  (0–40):   Safe zone      — raw value is comfortably below threshold
-      Blue  (40–60):   Caution zone   — raw value is approaching the threshold
-      Red   (60–100):  Critical zone  — action required, re-banking needed
+    Two zones:
+      ✅ Keep   (0–50):  raw value below 5.0 — no re-banking needed
+      🔄 Rebank (50–100): raw value at or above 5.0 — re-banking recommended
     """
     DISPLAY_MIN, DISPLAY_MAX = -10.0, 20.0
     DISPLAY_RANGE = DISPLAY_MAX - DISPLAY_MIN  # 30
@@ -25,65 +23,47 @@ def _render_rebanking_bar(raw_value: float):
         return max(0.0, min(100.0, ((v - DISPLAY_MIN) / DISPLAY_RANGE) * 100.0))
 
     bar_pos = _pos(raw_value)
-    thresh_pos = _pos(5.0)   # 50.0 — action threshold
-    zero_pos = _pos(0.0)     # 33.3 — "no concern" reference
+    thresh_pos = _pos(5.0)   # 50.0 — rebank threshold
 
-    # Determine status color for the marker
-    if raw_value < 0:
-        color_marker = "#00F5D4"  # teal
-    elif raw_value < 5.0:
-        color_marker = "#00B4D8"  # blue
+    # Color depends only on whether we are Keep or Rebank
+    if raw_value < 5.0:
+        color_marker = "#F72585"   # red  = Rebank
     else:
-        color_marker = "#F72585"  # red
-
-    # Visual zone boundaries
-    green_end = 40.0
-    blue_end = 60.0
+        color_marker = "#00F5D4"   # teal = Keep
 
     fig = go.Figure()
 
-    # ── Colored zone rectangles ──────────────────────────────────────
+    # ── Two zone rectangles ────────────────────────────────────────
     shapes = [
-        # Green: safe zone
+        # Rebank zone (0 → thresh_pos)
         dict(type="rect", xref="x", yref="paper",
-             x0=0, x1=green_end, y0=0.12, y1=0.88,
-             fillcolor="rgba(0,245,212,0.15)",
-             line=dict(width=1, color="rgba(0,245,212,0.2)")),
-        # Blue: caution zone
-        dict(type="rect", xref="x", yref="paper",
-             x0=green_end, x1=blue_end, y0=0.12, y1=0.88,
-             fillcolor="rgba(0,180,216,0.22)",
-             line=dict(width=1, color="rgba(0,180,216,0.3)")),
-        # Red: critical zone
-        dict(type="rect", xref="x", yref="paper",
-             x0=blue_end, x1=100, y0=0.12, y1=0.88,
+             x0=0, x1=thresh_pos, y0=0.12, y1=0.88,
              fillcolor="rgba(247,37,133,0.15)",
-             line=dict(width=1, color="rgba(247,37,133,0.2)")),
-        # ── Reference line: raw=0 ("stable") ──
-        dict(type="line", xref="x", yref="paper",
-             x0=zero_pos, x1=zero_pos, y0=0, y1=1,
-             line=dict(color="rgba(0,245,212,0.45)", width=1.5, dash="dot")),
-        # ── Threshold line: raw=5 (action required) ──
+             line=dict(width=1, color="rgba(247,37,133,0.25)")),
+        # Keep zone (thresh_pos → 100)
+        dict(type="rect", xref="x", yref="paper",
+             x0=thresh_pos, x1=100, y0=0.12, y1=0.88,
+             fillcolor="rgba(0,245,212,0.15)",
+             line=dict(width=1, color="rgba(0,245,212,0.25)")),
+        # ── Threshold line at position 50 (raw=5.0) ──
         dict(type="line", xref="x", yref="paper",
              x0=thresh_pos, x1=thresh_pos, y0=0, y1=1,
-             line=dict(color="rgba(247,37,133,0.85)", width=2.5, dash="dash")),
+             line=dict(color="rgba(247,37,133,0.90)", width=2.5, dash="dash")),
         # ── Current value line ──
         dict(type="line", xref="x", yref="paper",
              x0=bar_pos, x1=bar_pos, y0=0, y1=1,
              line=dict(color=color_marker, width=3.5)),
     ]
 
-    # ── Zone text labels ──────────────────────────────────────────────
+    # ── Zone text labels ──────────────────────────────────────────
     fig.add_trace(go.Scatter(
-        x=[20.0, 50.0, 80.0],
-        y=[0.5, 0.5, 0.5],
+        x=[thresh_pos / 2, (thresh_pos + 100) / 2],
+        y=[0.5, 0.5],
         mode="text",
-        text=["🟢  Safe Zone", "🔵 Caution", "🔴  Critical"],
+        text=["🔄  Rebank", "✅  Keep"],
         textfont=dict(
-            color=["rgba(0,245,212,0.75)",
-                   "rgba(0,180,216,0.85)",
-                   "rgba(247,37,133,0.75)"],
-            size=11,
+            color=["rgba(247,37,133,0.82)", "rgba(0,245,212,0.82)"],
+            size=13,
             family="Outfit",
         ),
         showlegend=False,
@@ -106,8 +86,8 @@ def _render_rebanking_bar(raw_value: float):
             f"<b>Re-Banking Index</b><br>"
             f"Raw Clinical Value : <b>{raw_value:.3f}</b><br>"
             f"Bar Position (0-100): <b>{bar_pos:.1f}</b><br>"
-            f"──────────────<br>"
-            f"⚠ Action Threshold = Raw 5.0  (Position: {thresh_pos:.0f}/100)"
+            f"————————<br>"
+            f"⚠ Rebank Threshold = Raw 5.0 (Position: {thresh_pos:.0f}/100)"
             "<extra></extra>"
         ),
     ))
@@ -117,12 +97,10 @@ def _render_rebanking_bar(raw_value: float):
         xaxis=dict(
             range=[0, 100],
             tickmode="array",
-            tickvals=[0, zero_pos, thresh_pos, 75, 100],
+            tickvals=[0, thresh_pos, 100],
             ticktext=[
                 "0",
-                f"{zero_pos:.0f}<br><span style='color:#00F5D4;font-size:9px'>Raw 0</span>",
                 f"<b>{thresh_pos:.0f}</b><br><span style='color:#F72585;font-size:9px'>⚠ Raw 5</span>",
-                "75",
                 "100",
             ],
             tickfont=dict(color="#94A3B8", size=10, family="Outfit"),
@@ -144,13 +122,14 @@ def _render_rebanking_bar(raw_value: float):
     return fig
 
 
-def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
+def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs, is_first_session: bool = False):
     """
     Renders the visual dashboard displaying all 11 outputs.
 
     Arguments:
         inputs (ImmuneInputs): Raw patient inputs.
         outputs (ImmuneOutputs): Calculated output scores.
+        is_first_session (bool): Whether this is the first session for the patient.
     """
     # ─────────────────────────────────────────────
     # 1. Main Key Metrics Summary (Metrics Bar)
@@ -395,7 +374,14 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
         st.markdown(_metric_card("Immune Decline Risk (IDRS)", outputs.IDRS, "#F72585"), unsafe_allow_html=True)
 
     with col_s4:
-        st.markdown(_metric_card("Re-Banking Index (RBI)", outputs.ReBankingIndex, "#00F5D4"), unsafe_allow_html=True)
+        rbi_val_str = "N/A" if is_first_session else f"{outputs.ReBankingIndex:.1f}"
+        st.markdown(
+            f'<div class="glass-card" style="padding:15px;text-align:center;margin-bottom:10px;">'
+            f'<p style="font-size:0.85rem;color:#94A3B8;margin-bottom:5px;">Re-Banking Index (RBI)</p>'
+            f'<h4 style="color:#00F5D4;font-size:1.6rem;font-weight:700;margin:0;">{rbi_val_str}</h4>'
+            f"</div>",
+            unsafe_allow_html=True
+        )
         st.markdown(_metric_card("Immune Quality (IMQS)", outputs.IMQS, "#00B4D8"), unsafe_allow_html=True)
 
     st.write("---")
@@ -406,64 +392,73 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
     st.markdown('<h3 class="card-title">🎯 Re-Banking Index — Risk Position Gauge</h3>', unsafe_allow_html=True)
 
     with st.container(border=True):
-        raw_rbi = outputs.ReBankingIndex
-        DISPLAY_MIN_RBI, DISPLAY_MAX_RBI = -10.0, 20.0
-        bar_pos_rbi = max(0.0, min(100.0,
-            ((raw_rbi - DISPLAY_MIN_RBI) / (DISPLAY_MAX_RBI - DISPLAY_MIN_RBI)) * 100.0
-        ))
-
-        if raw_rbi < 0:
-            rbi_color, rbi_icon, rbi_label = "#00F5D4", "🟢", "Stable — No Re-Banking Needed"
-        elif raw_rbi < 5.0:
-            rbi_color, rbi_icon, rbi_label = "#00B4D8", "🔵", "Monitor — Approaching Threshold"
+        if is_first_session:
+            st.markdown(
+                """
+                <div style="text-align:center; padding: 40px 20px;">
+                    <h3 style="color:#94A3B8; margin-bottom: 5px;">N/A</h3>
+                    <p style="color:#64748B; font-size: 1.1rem;">No Previously Banked Cells</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
         else:
-            rbi_color, rbi_icon, rbi_label = "#F72585", "🔴", "Action Required — Re-Banking Recommended"
+            raw_rbi = outputs.ReBankingIndex
+            DISPLAY_MIN_RBI, DISPLAY_MAX_RBI = -10.0, 20.0
+            bar_pos_rbi = max(0.0, min(100.0,
+                ((raw_rbi - DISPLAY_MIN_RBI) / (DISPLAY_MAX_RBI - DISPLAY_MIN_RBI)) * 100.0
+            ))
 
-        # ── Dual-value header ──
-        st.markdown(
-            f"""
-            <div style="display:flex; justify-content:space-between; align-items:center;
-                        padding: 8px 4px 4px 4px;">
-                <div>
-                    <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
-                                letter-spacing:1px; margin-bottom:3px;">Raw Clinical Value</div>
-                    <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
-                        {raw_rbi:.3f}
-                    </span>
-                    <span style="font-size:0.82rem; color:#64748B;"> &nbsp;/ Action Threshold: <b style='color:#F72585;'>5.0</b></span>
-                </div>
-                <div style="text-align:center;">
-                    <span style="font-size:1rem; font-weight:600; color:{rbi_color};">
-                        {rbi_icon} {rbi_label}
-                    </span>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
-                                letter-spacing:1px; margin-bottom:3px;">Bar Position (0–100)</div>
-                    <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
-                        {bar_pos_rbi:.1f}
-                    </span>
-                    <span style="font-size:0.82rem; color:#64748B;"> / 100 &nbsp;(⚠ threshold at 50)</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            if raw_rbi < 5.0:
+                rbi_color, rbi_icon, rbi_label = "#F72585", "🔄", "Rebank — Re-Banking Recommended"
+            else:
+                rbi_color, rbi_icon, rbi_label = "#00F5D4", "✅", "Keep — No Re-Banking Needed"
 
-        st.plotly_chart(_render_rebanking_bar(raw_rbi), use_container_width=True)
+            # ── Dual-value header ──
+            st.markdown(
+                f"""
+                <div style="display:flex; justify-content:space-between; align-items:center;
+                            padding: 8px 4px 4px 4px;">
+                    <div>
+                        <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
+                                    letter-spacing:1px; margin-bottom:3px;">Raw Clinical Value</div>
+                        <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
+                            {raw_rbi:.3f}
+                        </span>
+                        <span style="font-size:0.82rem; color:#64748B;"> &nbsp;/ Rebank Threshold: <b style='color:#F72585;'>5.0</b></span>
+                    </div>
+                    <div style="text-align:center;">
+                        <span style="font-size:1.1rem; font-weight:700; color:{rbi_color};">
+                            {rbi_icon} {rbi_label}
+                        </span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
+                                    letter-spacing:1px; margin-bottom:3px;">Bar Position (0–100)</div>
+                        <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
+                            {bar_pos_rbi:.1f}
+                        </span>
+                        <span style="font-size:0.82rem; color:#64748B;"> / 100 &nbsp;(⚠ threshold at 50)</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        st.markdown(
-            """
-            <div style="font-size:0.78rem; color:#64748B; text-align:center; padding: 2px 0 4px 0;">
-                🟢 Safe Zone (pos 0–40 / raw &lt; 2) &nbsp;|&nbsp;
-                🔵 Caution Zone (pos 40–60 / raw 2–8) &nbsp;|&nbsp;
-                🔴 Critical Zone (pos 60–100 / raw &gt; 8)
-                &nbsp;&nbsp;·&nbsp;&nbsp;
-                <span style='color:rgba(247,37,133,0.8);'>⚠ Dashed red line = Action Threshold (Raw: 5.0 / Position: 50)</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            st.plotly_chart(_render_rebanking_bar(raw_rbi), use_container_width=True)
+
+            st.markdown(
+                """
+                <div style="font-size:0.78rem; color:#64748B; text-align:center; padding: 2px 0 4px 0;">
+                    🔄 Rebank Zone (pos 0–50 / raw &lt; 5.0)
+                    &nbsp;&nbsp;·&nbsp;&nbsp;
+                    ✅ Keep Zone (pos 50–100 / raw &ge; 5.0)
+                    &nbsp;&nbsp;·&nbsp;&nbsp;
+                    <span style='color:rgba(247,37,133,0.8);'>⚠ Dashed red line = Rebank Threshold (Raw: 5.0 / Position: 50)</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     st.write("---")
 
@@ -502,22 +497,30 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs):
             unsafe_allow_html=True,
         )
 
-    if outputs.ReBankingIndex >= 5.0:
+    if is_first_session:
+        st.markdown(
+            f'<div class="glass-card info-card">'
+            f"<strong style='color:#00B4D8;'>ℹ️ INITIAL PROFILE: Re-banking Index Not Applicable</strong><br>"
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>No previously banked cells exist to compare against. "
+            f"Future profiles will calculate the Re-Banking Index to determine if updating your banked cells is necessary.</p></div>",
+            unsafe_allow_html=True,
+        )
+    elif outputs.ReBankingIndex < 5.0:
         st.markdown(
             f'<div class="glass-card alert-card">'
             f"<strong style='color:#F72585;'>⚠️ HIGH PRIORITY: Re-banking Suggested</strong><br>"
-            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>The Re-Banking Index is elevated "
-            f"(<strong>{outputs.ReBankingIndex:.1f}</strong>), driven by longitudinal acceleration in immune age "
-            f"(Delta Immune Age: <strong>{inputs.DeltaImmuneAge:+.1f} years</strong>) and rising immune decline risk. "
-            f"A booster cell collection or clinical immune support is advised.</p></div>",
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>The Re-Banking Index indicates optimal improvement "
+            f"(<strong>{outputs.ReBankingIndex:.1f}</strong>). Your immune system age is decreasing "
+            f"(Delta Immune Age: <strong>{inputs.DeltaImmuneAge:+.1f} years</strong>) and quality is peaking. "
+            f"Immediate cell collection is advised to capture this superior state.</p></div>",
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
             f'<div class="glass-card success-card">'
-            f"<strong style='color:#00F5D4;'>✓ STABLE: Re-banking Deferred</strong><br>"
-            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>Your longitudinal metrics are highly stable "
-            f"(Re-Banking Index: <strong>{outputs.ReBankingIndex:.1f}</strong>). No accelerated immune aging detected "
-            f"since your last profile. Continue routine annual surveillance.</p></div>",
+            f"<strong style='color:#00F5D4;'>✓ DEFER RE-BANKING: Keep Existing Cells</strong><br>"
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>The Re-Banking Index is high "
+            f"(<strong>{outputs.ReBankingIndex:.1f}</strong>) signaling declining immune quality. "
+            f"We advise keeping your previously banked excellent sample and deferring any new cell collections.</p></div>",
             unsafe_allow_html=True,
         )
