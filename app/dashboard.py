@@ -3,91 +3,66 @@ import plotly.graph_objects as go
 from src.engine.schemas import ImmuneOutputs, ImmuneInputs
 
 
-def _render_rebanking_bar(raw_value: float):
+def _render_idi_bar(idi_value: float):
     """
-    Render a two-zone horizontal gauge bar for the Re-Banking Index.
-
-    Visual display range: [-10, 20]  (practical clinical range)
-      raw = -10  → bar position =   0
-      raw =   5  → bar position =  50  (Rebank threshold)
-      raw =  20  → bar position = 100
-
-    Two zones:
-      ✅ Keep   (0–50):  raw value below 5.0 — no re-banking needed
-      🔄 Rebank (50–100): raw value at or above 5.0 — re-banking recommended
+    Render a horizontal gauge bar for the Immune Decline Index (IDI).
+    Display ranges:
+      0-20: Minimal
+      21-40: Mild
+      41-60: Moderate
+      61-80: Significant
+      81-100: Severe
     """
-    DISPLAY_MIN, DISPLAY_MAX = -10.0, 20.0
-    DISPLAY_RANGE = DISPLAY_MAX - DISPLAY_MIN  # 30
-
-    def _pos(v: float) -> float:
-        return max(0.0, min(100.0, ((v - DISPLAY_MIN) / DISPLAY_RANGE) * 100.0))
-
-    bar_pos = _pos(raw_value)
-    thresh_pos = _pos(5.0)   # 50.0 — rebank threshold
-
-    # Color depends only on whether we are Keep or Rebank
-    if raw_value < 5.0:
-        color_marker = "#F72585"   # red  = Rebank
+    val = max(0.0, min(100.0, idi_value))
+    
+    if val <= 20.0:
+        color = "#00F5D4"
+        status = "Minimal Decline"
+    elif val <= 40.0:
+        color = "#00B4D8"
+        status = "Mild Decline"
+    elif val <= 60.0:
+        color = "#FFBE0B"
+        status = "Moderate Decline"
+    elif val <= 80.0:
+        color = "#FF9F1C"
+        status = "Significant Decline"
     else:
-        color_marker = "#00F5D4"   # teal = Keep
+        color = "#F72585"
+        status = "Severe Decline"
 
     fig = go.Figure()
-
-    # ── Two zone rectangles ────────────────────────────────────────
+    
     shapes = [
-        # Rebank zone (0 → thresh_pos)
-        dict(type="rect", xref="x", yref="paper",
-             x0=0, x1=thresh_pos, y0=0.12, y1=0.88,
-             fillcolor="rgba(247,37,133,0.15)",
-             line=dict(width=1, color="rgba(247,37,133,0.25)")),
-        # Keep zone (thresh_pos → 100)
-        dict(type="rect", xref="x", yref="paper",
-             x0=thresh_pos, x1=100, y0=0.12, y1=0.88,
-             fillcolor="rgba(0,245,212,0.15)",
-             line=dict(width=1, color="rgba(0,245,212,0.25)")),
-        # ── Threshold line at position 50 (raw=5.0) ──
-        dict(type="line", xref="x", yref="paper",
-             x0=thresh_pos, x1=thresh_pos, y0=0, y1=1,
-             line=dict(color="rgba(247,37,133,0.90)", width=2.5, dash="dash")),
-        # ── Current value line ──
-        dict(type="line", xref="x", yref="paper",
-             x0=bar_pos, x1=bar_pos, y0=0, y1=1,
-             line=dict(color=color_marker, width=3.5)),
+        dict(type="rect", xref="x", yref="paper", x0=0, x1=20, y0=0.2, y1=0.8,
+             fillcolor="rgba(0,245,212,0.1)", line=dict(width=0)),
+        dict(type="rect", xref="x", yref="paper", x0=20, x1=40, y0=0.2, y1=0.8,
+             fillcolor="rgba(0,180,216,0.1)", line=dict(width=0)),
+        dict(type="rect", xref="x", yref="paper", x0=40, x1=60, y0=0.2, y1=0.8,
+             fillcolor="rgba(255,190,11,0.1)", line=dict(width=0)),
+        dict(type="rect", xref="x", yref="paper", x0=60, x1=80, y0=0.2, y1=0.8,
+             fillcolor="rgba(255,159,28,0.1)", line=dict(width=0)),
+        dict(type="rect", xref="x", yref="paper", x0=80, x1=100, y0=0.2, y1=0.8,
+             fillcolor="rgba(247,37,133,0.1)", line=dict(width=0)),
+        dict(type="line", xref="x", yref="paper", x0=val, x1=val, y0=0, y1=1,
+             line=dict(color=color, width=4)),
     ]
-
-    # ── Zone text labels ──────────────────────────────────────────
+    
     fig.add_trace(go.Scatter(
-        x=[thresh_pos / 2, (thresh_pos + 100) / 2],
-        y=[0.5, 0.5],
-        mode="text",
-        text=["🔄  Rebank", "✅  Keep"],
-        textfont=dict(
-            color=["rgba(247,37,133,0.82)", "rgba(0,245,212,0.82)"],
-            size=13,
-            family="Outfit",
-        ),
-        showlegend=False,
-        hoverinfo="skip",
-    ))
-
-    # ── Current value marker (triangle + hover tooltip) ───────────────
-    fig.add_trace(go.Scatter(
-        x=[bar_pos],
+        x=[val],
         y=[0.5],
         mode="markers",
         marker=dict(
             size=18,
-            color=color_marker,
+            color=color,
             symbol="triangle-up",
             line=dict(color="#FFFFFF", width=2),
         ),
         showlegend=False,
         hovertemplate=(
-            f"<b>Re-Banking Index</b><br>"
-            f"Raw Clinical Value : <b>{raw_value:.3f}</b><br>"
-            f"Bar Position (0-100): <b>{bar_pos:.1f}</b><br>"
-            f"————————<br>"
-            f"⚠ Rebank Threshold = Raw 5.0 (Position: {thresh_pos:.0f}/100)"
+            f"<b>Immune Decline Index</b><br>"
+            f"Value: <b>{val:.1f} / 100</b><br>"
+            f"Classification: <b>{status}</b><br>"
             "<extra></extra>"
         ),
     ))
@@ -97,12 +72,8 @@ def _render_rebanking_bar(raw_value: float):
         xaxis=dict(
             range=[0, 100],
             tickmode="array",
-            tickvals=[0, thresh_pos, 100],
-            ticktext=[
-                "0",
-                f"<b>{thresh_pos:.0f}</b><br><span style='color:#F72585;font-size:9px'>⚠ Raw 5</span>",
-                "100",
-            ],
+            tickvals=[0, 20, 40, 60, 80, 100],
+            ticktext=["0", "20", "40", "60", "80", "100"],
             tickfont=dict(color="#94A3B8", size=10, family="Outfit"),
             showgrid=False,
             zeroline=False,
@@ -113,12 +84,11 @@ def _render_rebanking_bar(raw_value: float):
         yaxis=dict(visible=False, range=[0, 1]),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        height=105,
-        margin=dict(l=10, r=10, t=5, b=48),
+        height=90,
+        margin=dict(l=10, r=10, t=5, b=30),
         showlegend=False,
         font=dict(family="Outfit", color="#F8FAFC"),
     )
-
     return fig
 
 
@@ -374,91 +344,85 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs, is_first_sess
         st.markdown(_metric_card("Immune Decline Risk (IDRS)", outputs.IDRS, "#F72585"), unsafe_allow_html=True)
 
     with col_s4:
-        rbi_val_str = "N/A" if is_first_session else f"{outputs.ReBankingIndex:.1f}"
-        st.markdown(
-            f'<div class="glass-card" style="padding:15px;text-align:center;margin-bottom:10px;">'
-            f'<p style="font-size:0.85rem;color:#94A3B8;margin-bottom:5px;">Re-Banking Index (RBI)</p>'
-            f'<h4 style="color:#00F5D4;font-size:1.6rem;font-weight:700;margin:0;">{rbi_val_str}</h4>'
-            f"</div>",
-            unsafe_allow_html=True
-        )
         st.markdown(_metric_card("Immune Quality (IMQS)", outputs.IMQS, "#00B4D8"), unsafe_allow_html=True)
+        st.markdown(_metric_card("Immune Resiliency (IRS)", outputs.IRS, "#00F5D4"), unsafe_allow_html=True)
 
     st.write("---")
 
     # ─────────────────────────────────────────────
-    # 6. Re-Banking Index — Visual Risk Gauge
+    # 6. Longitudinal Comparison — IDI & Upgrade Potential
     # ─────────────────────────────────────────────
-    st.markdown('<h3 class="card-title">🎯 Re-Banking Index — Risk Position Gauge</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">🎯 Longitudinal Comparison (Relative to Banked Sample)</h3>', unsafe_allow_html=True)
 
     with st.container(border=True):
-        if is_first_session:
+        if is_first_session or outputs.IDI is None or outputs.UPS is None:
             st.markdown(
                 """
                 <div style="text-align:center; padding: 40px 20px;">
                     <h3 style="color:#94A3B8; margin-bottom: 5px;">N/A</h3>
-                    <p style="color:#64748B; font-size: 1.1rem;">No Previously Banked Cells</p>
+                    <p style="color:#64748B; font-size: 1.1rem;">Initial Profile — No Previously Banked Cells</p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
         else:
-            raw_rbi = outputs.ReBankingIndex
-            DISPLAY_MIN_RBI, DISPLAY_MAX_RBI = -10.0, 20.0
-            bar_pos_rbi = max(0.0, min(100.0,
-                ((raw_rbi - DISPLAY_MIN_RBI) / (DISPLAY_MAX_RBI - DISPLAY_MIN_RBI)) * 100.0
-            ))
-
-            if raw_rbi < 5.0:
-                rbi_color, rbi_icon, rbi_label = "#F72585", "🔄", "Rebank — Re-Banking Recommended"
-            else:
-                rbi_color, rbi_icon, rbi_label = "#00F5D4", "✅", "Keep — No Re-Banking Needed"
-
-            # ── Dual-value header ──
-            st.markdown(
-                f"""
-                <div style="display:flex; justify-content:space-between; align-items:center;
-                            padding: 8px 4px 4px 4px;">
-                    <div>
-                        <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
-                                    letter-spacing:1px; margin-bottom:3px;">Raw Clinical Value</div>
-                        <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
-                            {raw_rbi:.3f}
-                        </span>
-                        <span style="font-size:0.82rem; color:#64748B;"> &nbsp;/ Rebank Threshold: <b style='color:#F72585;'>5.0</b></span>
+            col_left, col_right = st.columns(2)
+            
+            with col_left:
+                st.markdown("<h5>Immune Decline Index (IDI)</h5>", unsafe_allow_html=True)
+                raw_idi = outputs.IDI
+                
+                if raw_idi <= 20.0:
+                    idi_color, idi_label = "#00F5D4", "🟢 Minimal Decline"
+                elif raw_idi <= 40.0:
+                    idi_color, idi_label = "#00B4D8", "🔵 Mild Decline"
+                elif raw_idi <= 60.0:
+                    idi_color, idi_label = "#FFBE0B", "🟡 Moderate Decline"
+                elif raw_idi <= 80.0:
+                    idi_color, idi_label = "#FF9F1C", "🟠 Significant Decline"
+                else:
+                    idi_color, idi_label = "#F72585", "🔴 Severe Decline"
+                    
+                st.markdown(
+                    f"""
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                        <div>
+                            <span style="font-size:1.8rem; font-weight:800; color:{idi_color};">{raw_idi:.1f}</span>
+                            <span style="color:#64748B; font-size:0.85rem;"> / 100</span>
+                        </div>
+                        <span style="font-size:1rem; font-weight:700; color:{idi_color};">{idi_label}</span>
                     </div>
-                    <div style="text-align:center;">
-                        <span style="font-size:1.1rem; font-weight:700; color:{rbi_color};">
-                            {rbi_icon} {rbi_label}
-                        </span>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.plotly_chart(_render_idi_bar(raw_idi), use_container_width=True)
+                
+            with col_right:
+                st.markdown("<h5>Upgrade Potential Score (UPS)</h5>", unsafe_allow_html=True)
+                raw_ups = outputs.UPS
+                
+                if raw_ups > 0.0:
+                    ups_color = "#00F5D4"
+                    ups_title = "🟢 Sample Upgrade Suggested"
+                    ups_desc = f"The current immune profile is superior (UPS: <strong>+{raw_ups:.1f}</strong>) to your banked profile. Immediate re-banking is recommended to preserve this peak immunity."
+                    ups_bg = "rgba(0,245,212,0.08)"
+                    ups_border = "rgba(0,245,212,0.3)"
+                else:
+                    ups_color = "#00B4D8"
+                    ups_title = "🔵 Retain Original Banked Sample"
+                    ups_desc = f"The stored sample in the biobank remains biologically superior (UPS: <strong>{raw_ups:.1f}</strong>). Defer any new cell collections at this time."
+                    ups_bg = "rgba(0,180,216,0.08)"
+                    ups_border = "rgba(0,180,216,0.3)"
+                    
+                st.markdown(
+                    f"""
+                    <div style="background:{ups_bg}; border:1px solid {ups_border}; border-radius:8px; padding:15px; height:100%;">
+                        <strong style="color:{ups_color}; font-size:1rem;">{ups_title}</strong>
+                        <p style="margin-top:6px; color:#E2E8F0; font-size:0.85rem; line-height:1.4;">{ups_desc}</p>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:0.72rem; color:#94A3B8; text-transform:uppercase;
-                                    letter-spacing:1px; margin-bottom:3px;">Bar Position (0–100)</div>
-                        <span style="font-size:2rem; font-weight:800; color:{rbi_color};">
-                            {bar_pos_rbi:.1f}
-                        </span>
-                        <span style="font-size:0.82rem; color:#64748B;"> / 100 &nbsp;(⚠ threshold at 50)</span>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            st.plotly_chart(_render_rebanking_bar(raw_rbi), use_container_width=True)
-
-            st.markdown(
-                """
-                <div style="font-size:0.78rem; color:#64748B; text-align:center; padding: 2px 0 4px 0;">
-                    🔄 Rebank Zone (pos 0–50 / raw &lt; 5.0)
-                    &nbsp;&nbsp;·&nbsp;&nbsp;
-                    ✅ Keep Zone (pos 50–100 / raw &ge; 5.0)
-                    &nbsp;&nbsp;·&nbsp;&nbsp;
-                    <span style='color:rgba(247,37,133,0.8);'>⚠ Dashed red line = Rebank Threshold (Raw: 5.0 / Position: 50)</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    """,
+                    unsafe_allow_html=True,
+                )
 
     st.write("---")
 
@@ -497,30 +461,32 @@ def render_dashboard(inputs: ImmuneInputs, outputs: ImmuneOutputs, is_first_sess
             unsafe_allow_html=True,
         )
 
-    if is_first_session:
+    if is_first_session or outputs.IDI is None or outputs.UPS is None:
         st.markdown(
             f'<div class="glass-card info-card">'
-            f"<strong style='color:#00B4D8;'>ℹ️ INITIAL PROFILE: Re-banking Index Not Applicable</strong><br>"
-            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>No previously banked cells exist to compare against. "
-            f"Future profiles will calculate the Re-Banking Index to determine if updating your banked cells is necessary.</p></div>",
+            f"<strong style='color:#00B4D8;'>ℹ️ INITIAL PROFILE: Longitudinal Metrics Deferred</strong><br>"
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>This session establishes your initial baseline profile. "
+            f"Subsequent session tests will automatically calculate the Immune Decline Index (IDI) and Upgrade Potential Score (UPS) "
+            f"relative to this baseline to guide future banking recommendations.</p></div>",
             unsafe_allow_html=True,
         )
-    elif outputs.ReBankingIndex < 5.0:
+    elif outputs.UPS > 0.0:
         st.markdown(
-            f'<div class="glass-card alert-card">'
-            f"<strong style='color:#F72585;'>⚠️ HIGH PRIORITY: Re-banking Suggested</strong><br>"
-            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>The Re-Banking Index indicates optimal improvement "
-            f"(<strong>{outputs.ReBankingIndex:.1f}</strong>). Your immune system age is decreasing "
-            f"(Delta Immune Age: <strong>{inputs.DeltaImmuneAge:+.1f} years</strong>) and quality is peaking. "
-            f"Immediate cell collection is advised to capture this superior state.</p></div>",
+            f'<div class="glass-card success-card">'
+            f"<strong style='color:#00F5D4;'>✓ ACTION SUGGESTED: Update Banked Cells</strong><br>"
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>Your current immune metrics represent a biological improvement "
+            f"over your previously stored sample (Upgrade Potential Score: <strong>+{outputs.UPS:.1f}</strong>). "
+            f"We suggest performing a cell collection booster session to capture and preserve this improved state.</p></div>",
             unsafe_allow_html=True,
         )
     else:
+        # IDI and UPS <= 0
         st.markdown(
-            f'<div class="glass-card success-card">'
-            f"<strong style='color:#00F5D4;'>✓ DEFER RE-BANKING: Keep Existing Cells</strong><br>"
-            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>The Re-Banking Index is high "
-            f"(<strong>{outputs.ReBankingIndex:.1f}</strong>) signaling declining immune quality. "
-            f"We advise keeping your previously banked excellent sample and deferring any new cell collections.</p></div>",
+            f'<div class="glass-card alert-card">'
+            f"<strong style='color:#FFBE0B;'>✓ DEFER RE-BANKING: Keep Current Stored Sample</strong><br>"
+            f"<p style='margin-top:8px;color:#E2E8F0;font-size:0.95rem;'>Your stored sample remains superior to your current profile "
+            f"(Upgrade Potential Score: <strong>{outputs.UPS:.1f}</strong>). "
+            f"Your Immune Decline Index stands at <strong>{outputs.IDI:.1f} / 100</strong>. "
+            f"We recommend deferring new banking sessions and focusing on health optimization routines.</p></div>",
             unsafe_allow_html=True,
         )

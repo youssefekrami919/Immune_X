@@ -1,7 +1,7 @@
 import json
 import streamlit as st
 from src.engine.schemas import ImmuneInputs
-from src.utils.helpers import normalize_crp, normalize_il6, normalize_tnfa, normalize_cd4_cd8
+from src.utils.helpers import normalize_crp, normalize_il6, normalize_tnfa, normalize_cd4_cd8, normalize_naive_t, normalize_tscm
 
 def render_header():
     """Renders the dashboard header with only the title top bar."""
@@ -70,11 +70,13 @@ def render_input_form(previous_session: dict = None) -> ImmuneInputs:
             vals['TNFa'] = normalize_tnfa(raw_tnfa)
             st.caption(f"Normalized TNF-Alpha Score: **{vals['TNFa']:.1f} / 100**")
             
-            vals['TSCM'] = st.slider(
-                "T Memory Stem Cells (TSCM)", 
-                0.0, 100.0, 75.0, step=1.0,
-                help="Key cells for long-term immunological memory. Higher values represent better preservation."
+            raw_tscm = st.slider(
+                "T Memory Stem Cells (TSCM) [%]", 
+                0.0, 30.0, 8.0, step=0.1,
+                help="Proportion of T Memory Stem Cells in lymphocytes. (<=2% = 0, >=15% = 100)"
             )
+            vals['TSCM'] = normalize_tscm(raw_tscm)
+            st.caption(f"Normalized TSCM Score: **{vals['TSCM']:.1f} / 100**")
             
         with col2:
             vals['TCRD'] = st.slider(
@@ -91,11 +93,13 @@ def render_input_form(previous_session: dict = None) -> ImmuneInputs:
             vals['CD4_CD8_Ratio'] = normalize_cd4_cd8(raw_ratio)
             st.caption(f"Normalized CD4/CD8 Score: **{vals['CD4_CD8_Ratio']:.1f} / 100**")
                 
-            vals['NaiveT'] = st.slider(
-                "Naive T Cell Score", 
-                0.0, 100.0, 70.0, step=1.0,
-                help="Proportion of un-encountered T cells. Dictates ability to respond to new antigens."
+            raw_naive = st.slider(
+                "Naive T Cells [%]", 
+                0.0, 100.0, 30.0, step=1.0,
+                help="Proportion of naive T cells in total T cells. (<=10% = 0, >=50% = 100)"
             )
+            vals['NaiveT'] = normalize_naive_t(raw_naive)
+            st.caption(f"Normalized Naive T Score: **{vals['NaiveT']:.1f} / 100**")
             
     with tab2:
         st.markdown('<div class="form-section-header">Age & Lifestyle Quality Indicators</div>', unsafe_allow_html=True)
@@ -165,26 +169,39 @@ def render_input_form(previous_session: dict = None) -> ImmuneInputs:
                     help="Always 0 for the first session."
                 )
             
+            vals['TimeSinceBankingFactor'] = st.slider(
+                "Time Since Banking Factor",
+                0.0, 100.0, 10.0, step=1.0,
+                help="Duration factor since the patient last stored cells (0 = just stored, 100 = maximum threshold duration elapsed)."
+            )
+            
         with col2:
             # Auto-calculate current IMQS value to get Delta IMQS
-            # IMQS = 0.25*TSCM + 0.20*TCRD + 0.15*CD4_CD8_Ratio + 0.10*NaiveT + 0.10*VRS + 0.10*IS + 0.05*LS + 0.05*AF
             is_score = 0.40 * vals['CRP'] + 0.30 * vals['IL6'] + 0.30 * vals['TNFa']
-            ls_score = 0.30 * vals['Exercise_Score'] + 0.30 * vals['Sleep_Score'] + 0.20 * vals['BMI_Score'] + 0.20 * (100.0 - vals['Smoking_Score'])
-            vrs_score = 0.50 * vals['Antibody_Response'] + 0.30 * vals['T_cell_Response'] + 0.20 * vals['Response_Durability']
+            is_score = max(0.0, min(100.0, is_score))
             
-            expected_lifespan = max(vals['Expected_Lifespan'], 1.0)
-            af_score = 100.0 - ((vals['Age'] / expected_lifespan) * 100.0)
+            ls_score = 0.30 * vals['Exercise_Score'] + 0.30 * vals['Sleep_Score'] + 0.20 * vals['BMI_Score'] + 0.20 * vals['Smoking_Score']
+            ls_score = max(0.0, min(100.0, ls_score))
+            
+            vrs_score = 0.50 * vals['Antibody_Response'] + 0.30 * vals['T_cell_Response'] + 0.20 * vals['Response_Durability']
+            vrs_score = max(0.0, min(100.0, vrs_score))
+            
+            balance_factor = (0.5 * vals['NaiveT'] + 0.3 * vals['CD4_CD8_Ratio'] + 0.2 * is_score) / 100.0
+            balance_factor = max(0.0, min(1.0, balance_factor))
+            
+            adjusted_tscm = vals['TSCM'] * balance_factor
+            adjusted_tscm = max(0.0, min(100.0, adjusted_tscm))
             
             imqs_curr = (
-                0.25 * vals['TSCM'] +
+                0.30 * adjusted_tscm +
                 0.20 * vals['TCRD'] +
                 0.15 * vals['CD4_CD8_Ratio'] +
                 0.10 * vals['NaiveT'] +
                 0.10 * vrs_score +
                 0.10 * is_score +
-                0.05 * ls_score +
-                0.05 * af_score
+                0.05 * ls_score
             )
+            imqs_curr = max(0.0, min(100.0, imqs_curr))
             
             if imqs_prev is not None:
                 delta_imqs = float(imqs_curr - imqs_prev)

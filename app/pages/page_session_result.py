@@ -136,10 +136,52 @@ def page_session_result():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Reconstruct typed objects for render_dashboard ──────────────────────
+    # ── Reconstruct typed objects and dynamically recalculate outputs ──────
     try:
         inputs_obj = ImmuneInputs(**inputs_data)
-        outputs_obj = ImmuneOutputs(**outputs_data)
+        
+        banked_immune_age = None
+        banked_imqs = None
+        banked_tscm = None
+        banked_irs = None
+        
+        if national_id != "Unknown":
+            sessions = get_sessions(national_id)
+            curr_idx = -1
+            # Find the chronological index of this session
+            for idx, s in enumerate(sessions):
+                s_inputs = json.loads(s["inputs_json"])
+                if (abs(s_inputs.get("CRP", 0.0) - inputs_data.get("CRP", 0.0)) < 1e-4 and 
+                    abs(s_inputs.get("Age", 0.0) - inputs_data.get("Age", 0.0)) < 1e-4 and 
+                    abs(s_inputs.get("ImmuneAge", 0.0) - inputs_data.get("ImmuneAge", 0.0)) < 1e-4):
+                    curr_idx = idx
+                    break
+            
+            if curr_idx > 0:
+                # Banked profile is the best session among all prior sessions
+                prior_sessions = sessions[:curr_idx]
+                best_sess = max(prior_sessions, key=lambda s: s["ihi_score"])
+                best_inputs = json.loads(best_sess["inputs_json"])
+                best_outputs = json.loads(best_sess["outputs_json"])
+                
+                banked_immune_age = float(best_inputs.get("ImmuneAge", 0.0))
+                banked_imqs = float(best_outputs.get("IMQS", 0.0))
+                banked_tscm = float(best_inputs.get("TSCM", 0.0))
+                if "IRS" in best_outputs:
+                    banked_irs = float(best_outputs["IRS"])
+                else:
+                    vrs = float(best_outputs.get("VaccineResponseScore", 0.0))
+                    ls = float(best_outputs.get("LifestyleScore", 0.0))
+                    banked_irs = 0.40 * banked_tscm + 0.30 * vrs + 0.30 * ls
+                    banked_irs = max(0.0, min(100.0, banked_irs))
+                    
+        outputs_obj = calculate_immune_metrics(
+            inputs_obj,
+            banked_immune_age=banked_immune_age,
+            banked_imqs=banked_imqs,
+            banked_tscm=banked_tscm,
+            banked_irs=banked_irs,
+        )
     except Exception as e:
         st.error(f"Failed to load session data: {e}")
         return

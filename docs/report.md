@@ -63,22 +63,44 @@ Represents biological immune age acceleration. Negative values denote a younger,
 $$ImmuneAgeGap = ImmuneAge - Age$$
 
 #### 7. Immune Memory Quality Score (IMQS)
-Evaluates the quantity and quality of antigen-experienced cells. It relies on T Memory Stem Cells ($T_{SCM}$), T-cell Receptor Diversity ($TCRD$), Naive T cells, and intermediate indicators ($VRS, IS, LS, AF$).
-$$IMQS = 0.25(TSCM) + 0.20(TCRD) + 0.15(CD4\_CD8\_Ratio) + 0.10(NaiveT) + 0.10(VRS) + 0.10(IS) + 0.05(LS) + 0.05(AF)$$
+Evaluates the quantity and quality of antigen-experienced cells using $AdjustedTSCM$ (clamped by a Balance Factor) along with Naive T cells, CD4/CD8 ratio, and inflammatory/lifestyle scores.
+$$IMQS = 0.30(AdjustedTSCM) + 0.20(TCRD) + 0.15(CD4CD8Score) + 0.10(NaiveScore) + 0.10(VRS) + 0.10(InflammationScore) + 0.05(LifestyleScore)$$
+where:
+* $BalanceFactor = (0.5 \cdot NaiveScore + 0.3 \cdot CD4CD8Score + 0.2 \cdot InflammationScore)/100$
+* $AdjustedTSCM = TSCMScore \cdot BalanceFactor$
 
 #### 8. Biobanking Eligibility Score (BES)
-Determines if a patient's immune cells are high quality enough to bank. The $AgeFactor$ (AF) represents the $AgeScore$ in this calculation.
-$$BES = 0.60(IMQS) + 0.20(HS) + 0.20(AgeFactor)$$
+Determines if a patient's immune cells are high quality enough to bank. The $AgeScore$ is mapped stepwise by chronological age ranges.
+$$BES = 0.50(IMQS) + 0.20(HS) + 0.30(AgeScore)$$
+where $AgeScore$ is defined as:
+* Age 20-30 = 100
+* Age 31-40 = 90
+* Age 41-50 = 75
+* Age 51-60 = 60
+* Age 61-70 = 45
+* Age >70 = 30
 
-#### 9. Immune Decline Risk Score (IDRS)
-Estimates the rate of immunosenescence.
-$$IDRS = 0.30(IS) + 0.25(ImmuneAgeGap) + 0.15(BMI\_Score) + 0.15(Smoking\_Score) + 0.15(Comorbidity\_Score)$$
+#### 9. Immune Resiliency Score (IRS)
+Measures base adaptive and cellular reserve capacity.
+$$IRS = 0.40(TSCM) + 0.30(VaccineResponse) + 0.30(Lifestyle)$$
 
-#### 10. Re-Banking Index (RBI)
-Used to flag if previous biobanked samples need updating or cell boosting.
-$$ReBankingIndex = 0.50(DeltaImmuneAge) - 0.30(DeltaIMQS) + 0.20(IDRS)$$
+#### 10. Immune Decline Risk Score (IDRS)
+Estimates the rate of immunosenescence using inverted risk scores.
+$$IDRS = 0.30(InflammationRisk) + 0.25(ImmuneAgeGapRisk) + 0.15(BMIRisk) + 0.15(SmokingRisk) + 0.15(ComorbidityRisk)$$
+where Risk = 100 - Score.
 
-#### 11. Immune Health Index (IHI)
+#### 11. Immune Decline Index (IDI)
+Quantifies biological immune deterioration relative to the patient's best stored sample.
+$$IDI = 0.50(DeltaImmuneAgeScore) + 0.30(DeltaIMQS) + 0.20(TimeSinceBankingFactor)$$
+where:
+* $DeltaImmuneAge = CurrentImmuneAge - BankedImmuneAge$ (scaled to 0-100)
+* $DeltaIMQS = BankedIMQS - CurrentIMQS$ (clamped to $\ge 0$)
+
+#### 12. Upgrade Potential Score (UPS)
+Determines whether the current session's sample is biologically superior to the stored biobank sample.
+$$UPS = 0.40(CurrentIMQS - BankedIMQS) + 0.30(CurrentTSCM - BankedTSCM) + 0.30(CurrentIRS - BankedIRS)$$
+
+#### 13. Immune Health Index (IHI)
 The high-level overall summary metric of immune system durability.
 $$IHI = 0.40(IMQS) + 0.30(100 - IDRS) + 0.30(BES)$$
 
@@ -90,18 +112,18 @@ The engine is highly optimized; instead of asking the user to manually calculate
 
 ```text
                ┌── [ CRP, IL6, TNFa ] ──────────────────> Inflammation Score (IS) ──┐
-               ├── [ Exercise, Sleep, BMI, Smoking ] ────> Lifestyle Score (LS) ────┤
-               ├── [ Antibody, T_cell, Durability ] ────> Vaccine Score (VRS) ─────┤
-               ├── [ Age, Expected_Lifespan ] ──────────> Age Factor (AF) ─────────┼──> IMQS ──┐
-               │                                                                   │           │
-[ Raw Inputs ] ├── [ TSCM, TCRD, CD4_CD8_Ratio, NaiveT ] ──────────────────────────┘           │
-               ├── [ Metabolic, Cardiovascular, Base ] ──> Health Score (HS) ──────────┐       ├──> BES ──┐
-               │                                                                       │       │          │
-               ├── [ ImmuneAge, Age ] ──────────────────> Immune Age Gap ──┐           ├──> ───┼──> ──────┼──> IHI
-               │                                                           ├──> IDRS ──┤       │          │
-               ├── [ Comorbidity ] ────────────────────────────────────────┘     │     │       │          │
-               │                                                                 ▼     │       │          │
-               └── [ DeltaImmuneAge, DeltaIMQS ] ────────────────────────> ReBankingIndex ┘       ┘          ┘
+               ├── [ Exercise, Sleep, BMI, Smoking ] ────> Lifestyle Score (LS) ────┼──> IMQS (via Balance Factor & Adjusted TSCM) ──┐
+               ├── [ Antibody, T_cell, Durability ] ────> Vaccine Score (VRS) ─────┤                                                │
+               ├── [ Age, Expected_Lifespan ] ──────────> Age Factor (AF)          │                                                │
+[ Raw Inputs ] ├── [ TSCM, TCRD, CD4_CD8_Ratio, NaiveT ] ──────────────────────────┘                                                │
+               ├── [ Metabolic, Cardiovascular, Base ] ──> Health Score (HS) ────────────────────┐                                  ├──> BES ──┐
+               │                                                                                 │                                  │          │
+               ├── [ ImmuneAge, Age ] ──────────────────> Immune Age Gap ────┐                   ├──────────────────> ──────────────┼──> ──────┼──> IHI
+               │                                                             ├──> IDRS ──────────┘                                  │          │
+               ├── [ Comorbidity ] ──────────────────────────────────────────┘     │                                                │          │
+               │                                                                   ├────────────────────────> IDI                   │          │
+               ├── [ TimeSinceBankingFactor, Banked Sample Metrics ] ──────────────┼────────────────────────> UPS                   │          │
+               └── [ TSCM, VRS, LS ] ──────────────────────────────────────────────┴────────────────────────> IRS ──────────────────┘          ┘
 ```
 
 ---

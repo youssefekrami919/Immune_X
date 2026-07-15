@@ -161,14 +161,19 @@ Home Page  →  Patient Profile  →  Session Results
 | 50 – 74 | 🔵 Eligible | Eligible with minor optimisation needed |
 | 0 – 49 | ⚠️ Not Eligible | Postpone — address inflammation/health metrics |
 
-### 🎯 Re-Banking Index — Visual Risk Gauge
+### 🎯 Longitudinal Comparison — IDI & Upgrade Potential
 
-The Re-Banking Index features a custom visual gauge displaying a **dual-value metric** (raw clinical value + normalized 0-100 position) with two distinct zones:
+The platform features two longitudinal comparison indicators comparing the current test session against the patient's best stored biobank sample:
 
-* 🔄 **Rebank Zone (Bar position 0 to 50)**: Raw value is below 5.0. Status is Rebank (Re-Banking recommended).
-* ✅ **Keep Zone (Bar position 50 to 100)**: Raw value is at or above 5.0. Status is Keep (No Re-Banking needed).
-
-> ⚠ **Rebank Threshold**: The clinical action threshold of **`Raw: 5.0`** maps exactly to **`Position: 50`** on the 0-100 scale, indicated by a dashed red line.
+* **Immune Decline Index (IDI)**: Measures cellular deterioration since banking. IDI values are classified as:
+  * **0 – 20**: Minimal Decline
+  * **21 – 40**: Mild Decline
+  * **41 – 60**: Moderate Decline
+  * **61 – 80**: Significant Decline
+  * **81 – 100**: Severe Decline
+* **Upgrade Potential Score (UPS)**: Determines whether the current profile is biologically superior to the stored sample.
+  * **UPS > 0**: Potential Sample Upgrade Detected (recommends saving new peak immunity sample).
+  * **UPS <= 0**: Retain Original Banked Sample (original stored sample is superior).
 
 ---
 
@@ -205,4 +210,4 @@ The calculation engine consumes 23 input variables grouped into four categories:
 1. **Biomarkers & Lab Results (7)**: `CRP`, `IL6`, `TNFa`, `TSCM`, `TCRD`, `CD4_CD8_Ratio`, `NaiveT`.
 2. **Demographics & Lifestyle (7)**: `Age`, `Expected_Lifespan`, `BMI_Score`, `Smoking_Score`, `Exercise_Score`, `Sleep_Score`, `Comorbidity_Score`.
 3. **Medical History (6)**: `Antibody_Response`, `T_cell_Response`, `Response_Durability`, `Metabolic_Score`, `Cardiovascular_Score`, `Immune_Health_Base_Score`.
-4. **AI / Historical Data (3)**: `ImmuneAge`, `DeltaImmuneAge`, `DeltaIMQS`.
+4. **AI / Historical Data (4)**: `ImmuneAge`, `DeltaImmuneAge`, `DeltaIMQS`, `TimeSinceBankingFactor`.

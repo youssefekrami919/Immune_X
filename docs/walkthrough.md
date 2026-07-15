@@ -21,21 +21,23 @@ This document tracks all features, architectural changes, logic updates, and dat
 - **Longitudinal Trend Charting**: Enabled IHI and BES comparison plotting across all sessions chronologically.
 - **Re-Banking Index Gauge**: Added a visual index gauge with Keep/Rebank zones to show if cell updates are needed.
 
-### Phase 3: Logical Corrections & Input Automation [Latest]
-- **Re-banking Logic Refinement (Risk/Decline Index)**:
-  - Re-Banking Index formula uses the official engine specifications: `ReBankingIndex = 0.50(DeltaImmuneAge) - 0.30(DeltaIMQS) + 0.20(IDRS)`.
-  - The index is a **Risk/Decline Index**. 
-  - **High Score (>= 5.0)**: Represents immune decline. The automated decision is **Keep** (retain the previous excellent sample).
-  - **Low Score (< 5.0)**: Represents optimal health improvement. The automated decision is **Rebank** (capture the superior state immediately).
-  - **First Session**: The system explicitly skips calculating this index and displays **N/A - No Previously Banked Cells**.
+### Phase 3: Logical Corrections & Custom Longitudinal Engine [Latest]
+- **Removal of Re-Banking Index (RBI)**:
+  - Completely removed the conceptually incorrect RBI recommendation engine. Immune decline must not trigger re-banking a biologically inferior current sample.
+- **Introduction of Immune Decline Index (IDI)**:
+  - Measures immune deterioration relative to the patient's best stored sample.
+  - Formula: `IDI = 0.50(DeltaImmuneAgeScore) + 0.30(DeltaIMQS) + 0.20(TimeSinceBankingFactor)`.
+  - Classifies decline into stepwise ranges (Minimal, Mild, Moderate, Significant, Severe).
+- **Introduction of Upgrade Potential Score (UPS)**:
+  - Determines whether the current profile is biologically superior to the stored sample.
+  - Formula: `UPS = 0.40(CurrentIMQS - BankedIMQS) + 0.30(CurrentTSCM - BankedTSCM) + 0.30(CurrentIRS - BankedIRS)`.
+  - UPS > 0 triggers a "Sample Upgrade Suggested" decision; UPS <= 0 recommends retaining the original stored sample.
+- **Immune Resiliency Score (IRS)**:
+  - Added new output capacity measure: `IRS = 0.40(TSCM) + 0.30(VRS) + 0.30(Lifestyle)`.
 - **Temporal Input Automation**:
-  - Removed manual editing of `DeltaImmuneAge` and `DeltaIMQS` from the input form.
-  - **First Session**: Both Delta fields are automatically set to `0.0` (forced and read-only).
-  - **Subsequent Sessions**:
-    - System automatically fetches the previous session's `ImmuneAge` and `IMQS` from the database.
-    - Live-calculates and displays `DeltaImmuneAge = Current_ImmuneAge - Previous_ImmuneAge`.
-    - Live-calculates and displays `DeltaIMQS = Current_IMQS - Previous_IMQS` dynamically inside the Streamlit tabs.
-    - Fields are locked (disabled) to prevent doctor entry errors.
+  - Automatically fetches the patient's best historical session from the DB to act as the reference banked sample.
+  - Live-calculates and displays `DeltaImmuneAge` and `DeltaIMQS` on the UI.
+  - Added `TimeSinceBankingFactor` to form inputs.
 
 ---
 
@@ -72,20 +74,20 @@ CREATE TABLE IF NOT EXISTS sessions (
                          ▼
              [Is it the first session?]
              ├── Yes ──► Delta fields = 0.0 (disabled)
-             └── No  ──► Load last session from DB
+             └── No  ──► Load best session from DB as Banked Profile
                          Auto-calculate Deltas dynamically in UI
                          │
                          ▼
              [Doctor Submits Form]
                          │
                          ▼
-         [calculate_immune_metrics(inputs)]
+         [calculate_immune_metrics(inputs, banked_metrics)]
                          │
                          ▼
-        [Is Current Health Better than Last?]
-        ├── Yes (RBI < 5.0)  ──► Suggest Re-banking (Rebank)
-        └── No  (RBI >= 5.0) ──► Keep Existing Sample (Keep)
+             [Is Current Sample Better?]
+             ├── Yes (UPS > 0)  ──► Suggest Sample Upgrade (Upgrade)
+             └── No  (UPS <= 0) ──► Retain Stored Sample (Keep)
                          │
                          ▼
-         [Save Session outputs to DB & Rerun]
+          [Save Session outputs to DB & Rerun]
 ```

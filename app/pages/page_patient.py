@@ -278,7 +278,34 @@ def page_patient():
             )
 
         if submitted and inputs:
-            outputs = calculate_immune_metrics(inputs)
+            # Find best session (highest IHI) to act as banked profile
+            banked_immune_age = None
+            banked_imqs = None
+            banked_tscm = None
+            banked_irs = None
+            if sessions:
+                best_sess = max(sessions, key=lambda s: s["ihi_score"])
+                best_inputs = json.loads(best_sess["inputs_json"])
+                best_outputs = json.loads(best_sess["outputs_json"])
+                banked_immune_age = float(best_inputs.get("ImmuneAge", 0.0))
+                banked_imqs = float(best_outputs.get("IMQS", 0.0))
+                banked_tscm = float(best_inputs.get("TSCM", 0.0))
+                # For backward compatibility, calculate IRS if missing in database
+                if "IRS" in best_outputs:
+                    banked_irs = float(best_outputs["IRS"])
+                else:
+                    vrs = float(best_outputs.get("VaccineResponseScore", 0.0))
+                    ls = float(best_outputs.get("LifestyleScore", 0.0))
+                    banked_irs = 0.40 * banked_tscm + 0.30 * vrs + 0.30 * ls
+                    banked_irs = max(0.0, min(100.0, banked_irs))
+
+            outputs = calculate_immune_metrics(
+                inputs,
+                banked_immune_age=banked_immune_age,
+                banked_imqs=banked_imqs,
+                banked_tscm=banked_tscm,
+                banked_irs=banked_irs,
+            )
             result = add_session(
                 national_id,
                 inputs.model_dump(),
